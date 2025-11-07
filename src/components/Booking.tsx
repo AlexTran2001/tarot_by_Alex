@@ -68,12 +68,12 @@ export default function Booking() {
   }
 
   return (
-    <section id="booking" className="py-20 bg-gradient-to-b from-white to-zinc-50 from-zinc-950 to-zinc-900 transition-colors">
+    <section id="booking" className="py-20 bg-gradient-to-b from-[var(--muted)] via-soft to-white">
       <div className="max-w-2xl mx-auto px-6">
-        <h2 className="font-heading text-3xl font-semibold text-center text-white">
+        <h2 className="font-heading text-3xl font-semibold text-center text-black">
           Đặt lịch Tarot
         </h2>
-        <p className="mt-2 text-center text-zinc-600 text-zinc-400">
+        <p className="mt-2 text-center text-black">
           Chọn chủ đề và thời gian phù hợp, chúng tôi sẽ xác nhận qua email.
         </p>
 
@@ -84,12 +84,12 @@ export default function Booking() {
         >
           {/* Họ tên */}
           <div>
-            <label htmlFor="name" className="text-sm font-medium text-zinc-300">Họ và tên</label>
+            <label htmlFor="name" className="text-sm font-medium text-black">Họ và tên</label>
             <input
               id="name"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-zinc-300 border-zinc-700 bg-white bg-zinc-800 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+              className="mt-1 w-full rounded-lg border border-zinc-700 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-black"
               aria-invalid={!!errors.name}
             />
             {errors.name && <p className="mt-1 text-sm text-rose-500">{errors.name}</p>}
@@ -97,13 +97,13 @@ export default function Booking() {
 
           {/* Email */}
           <div>
-            <label htmlFor="email" className="text-sm font-medium text-zinc-300">Email</label>
+            <label htmlFor="email" className="text-sm font-medium text-black">Email</label>
             <input
               id="email"
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-zinc-300 border-zinc-700 bg-white bg-zinc-800 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+              className="mt-1 w-full rounded-lg border border-zinc-700 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-black"
               aria-invalid={!!errors.email}
             />
             {errors.email && <p className="mt-1 text-sm text-rose-500">{errors.email}</p>}
@@ -111,13 +111,13 @@ export default function Booking() {
 
           {/* Ngày & giờ */}
           <div>
-            <label htmlFor="datetime" className="text-sm font-medium text-zinc-300">Ngày & thời gian</label>
+            <label htmlFor="datetime" className="text-sm font-medium text-black">Ngày & thời gian</label>
             <input
               id="datetime"
               type="datetime-local"
               value={form.datetime}
               onChange={(e) => setForm({ ...form, datetime: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-zinc-300 border-zinc-700 bg-white bg-zinc-800 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+              className="mt-1 w-full rounded-lg border border-zinc-700 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-black"
               aria-invalid={!!errors.datetime}
             />
             {errors.datetime && <p className="mt-1 text-sm text-rose-500">{errors.datetime}</p>}
@@ -125,12 +125,12 @@ export default function Booking() {
 
           {/* Loại đọc */}
           <div>
-            <label htmlFor="type" className="text-sm font-medium text-zinc-300">Loại đọc</label>
+            <label htmlFor="type" className="text-sm font-medium text-black">Loại đọc</label>
             <select
               id="type"
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-zinc-300 border-zinc-700 bg-white bg-zinc-800 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+              className="mt-1 w-full rounded-lg border border-zinc-700 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-black"
             >
               <option>Tarot - General</option>
               <option>Tarot - Love</option>
@@ -140,13 +140,13 @@ export default function Booking() {
 
           {/* Ghi chú */}
           <div className="sm:col-span-2">
-            <label htmlFor="note" className="text-sm font-medium text-zinc-300">Ghi chú</label>
+            <label htmlFor="note" className="text-sm font-medium text-black">Ghi chú</label>
             <textarea
               id="note"
               value={form.note}
               onChange={(e) => setForm({ ...form, note: e.target.value })}
               rows={4}
-              className="mt-1 w-full rounded-lg border border-zinc-300 border-zinc-700 bg-white bg-zinc-800 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+              className="mt-1 w-full rounded-lg border border-zinc-700 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-black"
             />
           </div>
 
@@ -155,7 +155,7 @@ export default function Booking() {
             <button
               type="submit"
               disabled={status === "loading"}
-              className="rounded-full bg-black bg-indigo-600 px-8 py-3 text-white text-sm font-medium transition-all hover:scale-105 disabled:opacity-60"
+              className="rounded-full bg-indigo-600 px-8 py-3 text-white text-sm font-medium transition-all hover:scale-105 disabled:opacity-60"
             >
               {status === "loading" ? "Đang gửi..." : "Gửi yêu cầu"}
             </button>
@@ -188,5 +188,6 @@ export default function Booking() {
         </form>
       </div>
     </section>
+
   );
 }

@@ -6,7 +6,7 @@ export default function About() {
   return (
     <section
       id="about"
-      className="relative py-24 bg-gradient-to-b from-white via-[#f8f8f8] to-[#f2f2f2] overflow-hidden"
+      className="relative py-24 bg-gradient-to-b from-white via-[#f8f8f8] to-[var(--muted)] overflow-hidden"
     >
       {/* Ambient glowing lights */}
       <div className="absolute inset-0 -z-10">
