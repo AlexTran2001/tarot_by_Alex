@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 800 800"
+     width="800" height="800"
+     role="img" aria-label="Mặt trời và các hành tinh quay quanh quỹ đạo">
+  <defs>
+    <!-- Gradient cho mặt trời -->
+    <radialGradient id="sunGrad" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#fff9c4"/>
+      <stop offset="50%" stop-color="#ffca28"/>
+      <stop offset="100%" stop-color="#f57f17"/>
+    </radialGradient>
+
+    <!-- Gradient hành tinh -->
+    <radialGradient id="planetBlue" cx="30%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#e0f7ff"/>
+      <stop offset="100%" stop-color="#2196f3"/>
+    </radialGradient>
+
+    <radialGradient id="planetPurple" cx="30%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#f3e5f5"/>
+      <stop offset="100%" stop-color="#8e24aa"/>
+    </radialGradient>
+
+    <radialGradient id="planetGreen" cx="30%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#e8f5e9"/>
+      <stop offset="100%" stop-color="#2e7d32"/>
+    </radialGradient>
+
+    <radialGradient id="planetOrange" cx="30%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#fff3e0"/>
+      <stop offset="100%" stop-color="#ef6c00"/>
+    </radialGradient>
+
+    <!-- Hiệu ứng glow -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <style>
+      .orbit { fill: none; stroke: rgba(120,120,130,0.12); stroke-width: 1; }
+      .planet { filter: drop-shadow(0 3px 4px rgba(0,0,0,0.15)); }
+    </style>
+  </defs>
+
+  <!-- nền -->
+  <rect width="100%" height="100%" fill="transparent"/>
+
+  <!-- Mặt trời ở giữa -->
+  <g transform="translate(400,400)">
+    <circle r="70" fill="url(#sunGrad)" filter="url(#glow)"/>
+  </g>
+
+  <!-- Quỹ đạo -->
+  <circle class="orbit" cx="400" cy="400" r="140"/>
+  <circle class="orbit" cx="400" cy="400" r="220"/>
+  <circle class="orbit" cx="400" cy="400" r="310"/>
+  <circle class="orbit" cx="400" cy="400" r="400"/>
+
+  <!-- Hành tinh 1 -->
+  <g>
+    <animateTransform attributeName="transform" type="rotate"
+      from="0 400 400" to="360 400 400" dur="8s" repeatCount="indefinite"/>
+    <circle cx="540" cy="400" r="10" fill="url(#planetBlue)" class="planet"/>
+  </g>
+
+  <!-- Hành tinh 2 -->
+  <g>
+    <animateTransform attributeName="transform" type="rotate"
+      from="0 400 400" to="-360 400 400" dur="14s" repeatCount="indefinite"/>
+    <circle cx="620" cy="400" r="13" fill="url(#planetPurple)" class="planet"/>
+  </g>
+
+  <!-- Hành tinh 3 -->
+  <g>
+    <animateTransform attributeName="transform" type="rotate"
+      from="0 400 400" to="360 400 400" dur="22s" repeatCount="indefinite"/>
+    <circle cx="710" cy="400" r="16" fill="url(#planetGreen)" class="planet"/>
+  </g>
+
+  <!-- Hành tinh 4 (xa, chậm hơn) -->
+  <g>
+    <animateTransform attributeName="transform" type="rotate"
+      from="0 400 400" to="-360 400 400" dur="34s" repeatCount="indefinite"/>
+    <circle cx="800" cy="400" r="12" fill="url(#planetOrange)" class="planet"/>
+  </g>
+
+</svg>

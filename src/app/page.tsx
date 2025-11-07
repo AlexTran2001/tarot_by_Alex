@@ -19,16 +19,6 @@ export default function Home() {
       <Booking />
 
       <footer className="relative py-12" role="contentinfo">
-        {/* Star sparkles accent */}
-        <div className="absolute left-6 bottom-6 z-10 hidden md:block">
-          <img
-            src="/star-sparkle.svg"
-            alt="Star sparkles accent"
-            role="img"
-            aria-label="Star sparkles accent"
-            className="w-24 opacity-10"
-          />
-        </div>
         <div className="container-max mx-auto px-6 text-center text-sm text-zinc-600">
           <div>© Tarot by Alex</div>
           <div className="mt-3 flex items-center justify-center gap-4">

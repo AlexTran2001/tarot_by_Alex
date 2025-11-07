@@ -47,26 +47,11 @@ export default function Testimonials() {
 
         <div className="max-w-3xl mx-auto">
           <div className="relative bg-white rounded-lg p-8">
-            {/* Sun-line accent background */}
-            <div className="absolute right-6 top-6 z-0 hidden md:block">
-              <img
-                src="/sun-line.svg"
-                alt="Sunburst accent"
-                role="img"
-                aria-label="Sunburst accent"
-                className="w-20 opacity-10"
-              />
-            </div>
+
 
             <div className="min-h-[12rem] flex flex-col">
               <blockquote className="flex-1 text-lg mb-4">
-                <img
-                  src="/star-sparkle.svg"
-                  alt="Star sparkle"
-                  role="img"
-                  aria-label="Star sparkle"
-                  className="w-6 h-6 inline-block mr-2 opacity-15 align-top"
-                />
+
                 {testimonials[currentIndex].quote}
               </blockquote>
 
@@ -83,7 +68,7 @@ export default function Testimonials() {
                 aria-label="Xem lời chứng thực trước"
               >
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M15 19l-7-7 7-7" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M15 19l-7-7 7-7" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </button>
 
@@ -92,9 +77,8 @@ export default function Testimonials() {
                   <button
                     key={i}
                     onClick={() => setCurrentIndex(i)}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      i === currentIndex ? 'bg-black' : 'bg-zinc-200'
-                    }`}
+                    className={`w-2 h-2 rounded-full transition-colors ${i === currentIndex ? 'bg-black' : 'bg-zinc-200'
+                      }`}
                     aria-label={`Chuyển đến lời chứng thực ${i + 1}`}
                   />
                 ))}
@@ -106,7 +90,7 @@ export default function Testimonials() {
                 aria-label="Xem lời chứng thực tiếp theo"
               >
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </button>
             </div>

@@ -30,13 +30,13 @@ export const metadata: Metadata = {
     title: "Tarot by Alex — Trải bài Tarot chuyên nghiệp & tinh tế",
     description:
       "Tarot by Alex mang đến không gian xem bài Tarot sang trọng, tĩnh lặng và cá nhân hóa — giúp bạn khám phá bản thân, thấu hiểu tình yêu, công việc, sự nghiệp và con đường tâm linh. Đặt lịch trải bài Tarot cùng Alex để đón nhận thông điệp từ vũ trụ với sự tinh tế và sâu sắc.",
-    url: "https://your-domain.com/",
+    url: "https://tarot-by-alex.vercel.app/",
     siteName: "Tarot by Alex",
     locale: "vi_VN",
     type: "website",
     images: [
       {
-        url: "https://your-domain.com/og-image.jpg",
+        url: "https://tarot-by-alex.vercel.app/favicon.svg",
         width: 1200,
         height: 630,
         alt: "Tarot by Alex — Xem bài Tarot chuyên nghiệp, sang trọng và tinh tế",
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     title: "Tarot by Alex — Xem bài Tarot chuyên nghiệp & tinh tế",
     description:
       "Tarot by Alex — trải nghiệm xem bài Tarot cá nhân hóa, sang trọng và bình an. Khám phá thông điệp từ vũ trụ dành riêng cho bạn.",
-    images: ["https://your-domain.com/og-image.jpg"],
+    images: ["https://tarot-by-alex.vercel.app/favicon.svg"],
     site: "@tarotbyalex",
   },
   robots: {
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     follow: true,
   },
   alternates: {
-    canonical: "https://your-domain.com/",
+    canonical: "https://tarot-by-alex.vercel.app/",
   },
 };
 
