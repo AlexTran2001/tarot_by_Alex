@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, Be_Vietnam_Pro } from "next/font/google";
 import "./globals.css";
 import Navbar from "../components/Navbar";
+import TransitionProvider from "@/components/TransitionProvider";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -62,16 +63,17 @@ export const metadata: Metadata = {
 
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+
   return (
     <html lang="vi">
-      <body className={`${playfair.variable} ${beVietnam.variable} font-body antialiased`}>
+      <body className={`${playfair.variable} ${beVietnam.variable} font-body antialiased bg-white text-zinc-800 antialiased scroll-smooth transition-all duration-500`}>
         {/* Skip link for keyboard and screen reader users */}
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-white px-3 py-2 rounded-md text-sm">
           Bỏ qua tới nội dung
         </a>
 
         <Navbar />
-        {children}
+        <TransitionProvider>{children}</TransitionProvider>
       </body>
     </html>
   );
