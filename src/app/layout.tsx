@@ -65,8 +65,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 
   return (
-    <html lang="vi">
-      <body className={`${playfair.variable} ${beVietnam.variable} font-body antialiased bg-white text-zinc-800 antialiased scroll-smooth transition-all duration-500`}>
+    <html lang="vi" data-scroll-behavior="smooth">
+      <body className={`${playfair.variable} ${beVietnam.variable} font-body antialiased bg-white text-zinc-800 antialiased transition-all duration-500`}>
         {/* Skip link for keyboard and screen reader users */}
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-white px-3 py-2 rounded-md text-sm">
           Bỏ qua tới nội dung

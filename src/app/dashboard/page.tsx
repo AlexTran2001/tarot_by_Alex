@@ -1,0 +1,138 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { supabase } from "@/lib/supabaseClient";
+import type { User } from "@supabase/supabase-js";
+import Breadcrumb from "@/components/Breadcrumb";
+
+export default function DashboardPage() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    let mounted = true;
+
+    // Listen for auth changes (fires immediately with current session)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      
+      if (!session) {
+        setUser(null);
+        setLoading(false);
+        if (mounted) {
+          router.push("/login");
+        }
+      } else {
+        setUser(session.user);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [router]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center pt-24">
+        <div className="text-center">
+          <svg
+            className="animate-spin h-8 w-8 text-black mx-auto mb-4"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          <p className="text-gray-600 font-body">Đang tải...</p>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen px-4 pt-24 pb-12 bg-white">
+      <div className="container-max mx-auto">
+        <Breadcrumb items={[{ label: "Dashboard" }]} />
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-heading font-bold text-black mb-2">Bảng điều khiển</h1>
+            <p className="text-gray-600 font-body">
+              Chào mừng, {user?.email || "Người dùng"}
+            </p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="px-6 py-3 bg-black text-white rounded-md font-medium font-body hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-all"
+          >
+            Đăng xuất
+          </button>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <Link
+            href="/ads/manage"
+            className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all hover:border-black"
+          >
+            <h3 className="text-xl font-heading font-bold text-black mb-2">Quản lý Ads</h3>
+            <p className="text-gray-600 font-body text-sm mb-4">Tạo và quản lý các bài quảng cáo</p>
+            <span className="text-black font-body text-sm font-medium">Xem chi tiết →</span>
+          </Link>
+
+          <Link
+            href="/booking/manage"
+            className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all hover:border-black"
+          >
+            <h3 className="text-xl font-heading font-bold text-black mb-2">Quản lý Booking</h3>
+            <p className="text-gray-600 font-body text-sm mb-4">Xem và quản lý các đặt lịch Tarot</p>
+            <span className="text-black font-body text-sm font-medium">Xem chi tiết →</span>
+          </Link>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
+          <h2 className="text-2xl font-heading font-bold text-black mb-4">Thông tin tài khoản</h2>
+          <div className="space-y-4 font-body">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Email</p>
+              <p className="text-black">{user?.email}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 mb-1">ID người dùng</p>
+              <p className="text-black text-sm font-mono break-all">{user?.id}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Đã xác thực</p>
+              <p className="text-black">{user?.email_confirmed_at ? "Có" : "Chưa"}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+

@@ -46,21 +46,45 @@ export default function Booking() {
       setStatus("loading");
 
       try {
-        await emailjs.send(
-          process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
-          process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
-          {
-            ...form,
-            formatted_date: new Date(form.datetime).toLocaleString("vi-VN"),
-          },
-          process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
-        );
+        // Save booking to database
+        const bookingResponse = await fetch("/api/booking", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: form.name,
+            email: form.email,
+            datetime: form.datetime,
+            type: form.type,
+            note: form.note,
+          }),
+        });
+
+        if (!bookingResponse.ok) {
+          const errorData = await bookingResponse.json();
+          throw new Error(errorData?.error || "Failed to save booking");
+        }
+
+        // Send email notification (optional - can fail without breaking the flow)
+        try {
+          await emailjs.send(
+            process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+            process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
+            {
+              ...form,
+              formatted_date: new Date(form.datetime).toLocaleString("vi-VN"),
+            },
+            process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+          );
+        } catch (emailError) {
+          console.warn("Email sending failed, but booking was saved:", emailError);
+          // Continue even if email fails
+        }
 
         setStatus("success");
         setForm(initial);
         setTimeout(() => setStatus("idle"), 6000);
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        console.error("Booking submission error:", err);
         setStatus("error");
         setTimeout(() => setStatus("idle"), 5000);
       }

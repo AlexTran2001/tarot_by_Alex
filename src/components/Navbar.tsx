@@ -2,10 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
+import type { User } from "@supabase/supabase-js";
 
 export default function Navbar() {
     const [scrolled, setScrolled] = useState(false);
     const [open, setOpen] = useState(false);
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
+    const pathname = usePathname();
+    const router = useRouter();
 
     useEffect(() => {
         function onScroll() {
@@ -21,40 +29,173 @@ export default function Navbar() {
         document.body.style.overflow = open ? "hidden" : "auto";
     }, [open]);
 
-    const navLinks = [
-        { href: "#services", label: "Dịch vụ" },
-        { href: "#pricing", label: "Bảng giá" },
-        { href: "#booking", label: "Đặt lịch" },
+    // Check authentication
+    useEffect(() => {
+        const checkUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+            setLoading(false);
+        };
+
+        checkUser();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            setUser(session?.user ?? null);
+            // If signed out and on a protected page, redirect to home
+            if (event === "SIGNED_OUT" && (pathname?.startsWith("/dashboard") ||
+                pathname?.startsWith("/ads/new") ||
+                pathname?.startsWith("/booking/manage"))) {
+                router.push("/");
+            }
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [pathname, router]);
+
+    // Handle hash navigation on page load
+    useEffect(() => {
+        if (pathname === "/" && window.location.hash) {
+            const hash = window.location.hash;
+            const element = document.querySelector(hash);
+            if (element) {
+                // Wait for page to fully render
+                setTimeout(() => {
+                    const navbarHeight = 80;
+                    const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+                    const offsetPosition = elementPosition - navbarHeight;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: "smooth"
+                    });
+                }, 100);
+            }
+        }
+    }, [pathname]);
+
+    const handleLogout = async () => {
+        try {
+            // Clear user state immediately for UI update
+            setUser(null);
+
+            // Sign out from Supabase
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+                console.error("Logout error:", error);
+                // Re-check user if logout failed
+                const { data: { user } } = await supabase.auth.getUser();
+                setUser(user);
+                return;
+            }
+
+            // Force redirect to home page, especially if on protected route
+            window.location.href = "/";
+        } catch (err) {
+            console.error("Logout error:", err);
+        }
+    };
+
+    const publicNavLinks = [
+        { href: "#services", label: "Dịch vụ", isHash: true },
+        { href: "#pricing", label: "Bảng giá", isHash: true },
+        { href: "#booking", label: "Đặt lịch", isHash: true },
+        { href: "/ads", label: "Quảng cáo", isHash: false },
     ];
+
+    const adminNavLinks = [
+        { href: "/dashboard", label: "Dashboard", isHash: false },
+        { href: "/ads/manage", label: "Quản lý Ads", isHash: false },
+        { href: "/booking/manage", label: "Quản lý Booking", isHash: false },
+    ];
+
+    const navLinks = user ? adminNavLinks : publicNavLinks;
+
+    // Check if we're on a management page
+    const isManagementPage = pathname?.startsWith("/dashboard") ||
+        pathname?.startsWith("/ads/manage") ||
+        pathname?.startsWith("/ads/new") ||
+        (pathname?.startsWith("/ads/") && pathname?.includes("/edit")) ||
+        pathname?.startsWith("/booking/manage") ||
+        pathname === "/login";
 
     return (
         <header
-            className={`fixed left-0 right-0 top-0 z-40 transition-all duration-500 ease-smooth ${scrolled
-                    ? "bg-white/80 backdrop-blur-md border-b border-black/5 shadow-sm"
-                    : "bg-transparent"
+            className={`fixed left-0 right-0 top-0 z-40 transition-all duration-500 ease-smooth ${isManagementPage || scrolled
+                ? "bg-white/95 backdrop-blur-md border-b border-black/10 shadow-sm"
+                : "bg-transparent"
                 }`}
         >
             <div className="container-max mx-auto px-6 py-4 flex items-center justify-between">
-                <a
-                    href="#"
+                <Link
+                    href="/"
                     className="font-heading text-lg tracking-wide text-black"
                     aria-label="Trang chủ"
                 >
                     Tarot by Alex
-                </a>
+                </Link>
 
                 {/* Desktop nav */}
-                <nav aria-label="Primary" className="hidden sm:flex gap-6 text-sm text-zinc-800">
-                    {navLinks.map((link) => (
-                        <a
-                            key={link.href}
-                            href={link.href}
-                            className="relative group"
+                <nav aria-label="Primary" className="hidden sm:flex items-center gap-6 text-sm text-zinc-800">
+                    {navLinks.map((link) => {
+                        if (link.isHash) {
+                            return (
+                                <a
+                                    key={link.href}
+                                    href={pathname === "/" ? link.href : `/${link.href}`}
+                                    onClick={(e) => {
+                                        if (pathname === "/") {
+                                            e.preventDefault();
+                                            const element = document.querySelector(link.href);
+                                            if (element) {
+                                                const navbarHeight = 80; // Approximate navbar height
+                                                const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+                                                const offsetPosition = elementPosition - navbarHeight;
+
+                                                window.scrollTo({
+                                                    top: offsetPosition,
+                                                    behavior: "smooth"
+                                                });
+                                            }
+                                        } else {
+                                            e.preventDefault();
+                                            router.push(`/${link.href}`);
+                                        }
+                                    }}
+                                    className="relative group"
+                                >
+                                    {link.label}
+                                    <span className="absolute left-0 bottom-0 w-0 h-[1.5px] bg-black transition-all duration-300 group-hover:w-full"></span>
+                                </a>
+                            );
+                        }
+                        return (
+                            <Link
+                                key={link.href}
+                                href={link.href}
+                                className="relative group"
+                            >
+                                {link.label}
+                                <span className="absolute left-0 bottom-0 w-0 h-[1.5px] bg-black transition-all duration-300 group-hover:w-full"></span>
+                            </Link>
+                        );
+                    })}
+                    {user ? (
+                        <button
+                            onClick={handleLogout}
+                            className="px-4 py-2 text-sm text-zinc-800 hover:text-black border border-zinc-300 rounded-md hover:bg-zinc-50 transition-all"
                         >
-                            {link.label}
-                            <span className="absolute left-0 bottom-0 w-0 h-[1.5px] bg-black transition-all duration-300 group-hover:w-full"></span>
-                        </a>
-                    ))}
+                            Đăng xuất
+                        </button>
+                    ) : (
+                        <Link
+                            href="/login"
+                            className="px-4 py-2 text-sm text-white bg-black rounded-md hover:bg-gray-800 transition-all"
+                        >
+                            Đăng nhập
+                        </Link>
+                    )}
                 </nav>
 
                 {/* Mobile nav */}
@@ -104,16 +245,68 @@ export default function Navbar() {
                                 className="absolute right-4 top-16 z-50 w-52 rounded-2xl bg-white shadow-xl border border-black/5"
                             >
                                 <div className="flex flex-col p-2">
-                                    {navLinks.map((link) => (
-                                        <a
-                                            key={link.href}
-                                            href={link.href}
-                                            onClick={() => setOpen(false)}
-                                            className="px-4 py-3 text-sm rounded-lg hover:bg-zinc-100 transition-all"
+                                    {navLinks.map((link) => {
+                                        if (link.isHash) {
+                                            return (
+                                                <a
+                                                    key={link.href}
+                                                    href={pathname === "/" ? link.href : `/${link.href}`}
+                                                    onClick={(e) => {
+                                                        if (pathname === "/") {
+                                                            e.preventDefault();
+                                                            const element = document.querySelector(link.href);
+                                                            if (element) {
+                                                                const navbarHeight = 80; // Approximate navbar height
+                                                                const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+                                                                const offsetPosition = elementPosition - navbarHeight;
+
+                                                                window.scrollTo({
+                                                                    top: offsetPosition,
+                                                                    behavior: "smooth"
+                                                                });
+                                                            }
+                                                        } else {
+                                                            e.preventDefault();
+                                                            router.push(`/${link.href}`);
+                                                        }
+                                                        setOpen(false);
+                                                    }}
+                                                    className="px-4 py-3 text-sm rounded-lg hover:bg-zinc-100 transition-all"
+                                                >
+                                                    {link.label}
+                                                </a>
+                                            );
+                                        }
+                                        return (
+                                            <Link
+                                                key={link.href}
+                                                href={link.href}
+                                                onClick={() => setOpen(false)}
+                                                className="px-4 py-3 text-sm rounded-lg hover:bg-zinc-100 transition-all"
+                                            >
+                                                {link.label}
+                                            </Link>
+                                        );
+                                    })}
+                                    {user ? (
+                                        <button
+                                            onClick={() => {
+                                                handleLogout();
+                                                setOpen(false);
+                                            }}
+                                            className="px-4 py-3 text-sm rounded-lg hover:bg-zinc-100 transition-all text-left border-t border-zinc-200 mt-2 pt-3"
                                         >
-                                            {link.label}
-                                        </a>
-                                    ))}
+                                            Đăng xuất
+                                        </button>
+                                    ) : (
+                                        <Link
+                                            href="/login"
+                                            onClick={() => setOpen(false)}
+                                            className="px-4 py-3 text-sm rounded-lg hover:bg-zinc-100 transition-all text-center bg-black text-white mt-2"
+                                        >
+                                            Đăng nhập
+                                        </Link>
+                                    )}
                                 </div>
                             </motion.div>
                         )}
