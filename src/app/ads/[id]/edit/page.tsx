@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
 import FormAd from "@/components/ads/FormAd";
 import Breadcrumb from "@/components/Breadcrumb";
+import { checkIsAdmin } from "@/lib/adminUtils";
 
 export default function EditAdPage() {
     const [user, setUser] = useState<User | null>(null);
