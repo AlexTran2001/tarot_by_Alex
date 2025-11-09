@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import React from "react";
+import React, { memo } from "react";
 
 interface ServiceCardProps {
   title: string;
@@ -10,7 +10,7 @@ interface ServiceCardProps {
   delay?: number;
 }
 
-function ServiceCard({ title, description, icon, delay = 0 }: ServiceCardProps) {
+const ServiceCard = memo(function ServiceCard({ title, description, icon, delay = 0 }: ServiceCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
@@ -29,7 +29,7 @@ function ServiceCard({ title, description, icon, delay = 0 }: ServiceCardProps) 
       <p className="text-zinc-600 text-sm leading-relaxed">{description}</p>
     </motion.div>
   );
-}
+});
 
 export default function Services() {
   return (

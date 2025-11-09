@@ -1,9 +1,26 @@
+import dynamic from "next/dynamic";
 import Hero from "@/components/Hero";
-import Services from "@/components/Services";
-import About from "@/components/About";
-import Testimonials from "@/components/Testimonials";
-import Pricing from "@/components/Pricing";
-import Booking from "@/components/Booking";
+
+// Lazy load below-the-fold components for better initial page load
+const Services = dynamic(() => import("@/components/Services"), {
+  loading: () => <div className="py-24" />,
+});
+
+const About = dynamic(() => import("@/components/About"), {
+  loading: () => <div className="py-24" />,
+});
+
+const Testimonials = dynamic(() => import("@/components/Testimonials"), {
+  loading: () => <div className="py-24" />,
+});
+
+const Pricing = dynamic(() => import("@/components/Pricing"), {
+  loading: () => <div className="py-24" />,
+});
+
+const Booking = dynamic(() => import("@/components/Booking"), {
+  loading: () => <div className="py-20" />,
+});
 
 export default function Home() {
   return (

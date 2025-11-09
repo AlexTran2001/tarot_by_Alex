@@ -29,6 +29,8 @@ export default function About() {
               alt="Alex Tarot Logo"
               fill
               className="object-cover scale-105 hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(.2,.8,.2,1)]"
+              sizes="(max-width: 768px) 100vw, 50vw"
+              loading="lazy"
             />
 
             {/* Ánh sáng overlay mờ */}

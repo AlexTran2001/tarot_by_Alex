@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Testimonial {
@@ -30,14 +30,23 @@ const testimonials: Testimonial[] = [
 export default function Testimonials() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const next = () => setCurrentIndex((c) => (c + 1) % testimonials.length);
-  const prev = () => setCurrentIndex((c) => (c - 1 + testimonials.length) % testimonials.length);
+  // Memoize next and prev functions to prevent recreation on every render
+  const next = useCallback(() => {
+    setCurrentIndex((c) => (c + 1) % testimonials.length);
+  }, []);
+
+  const prev = useCallback(() => {
+    setCurrentIndex((c) => (c - 1 + testimonials.length) % testimonials.length);
+  }, []);
 
   // 🕒 Tự động chuyển testimonial sau 6s
   useEffect(() => {
     const timer = setInterval(next, 6000);
     return () => clearInterval(timer);
-  }, []);
+  }, [next]);
+
+  // Memoize current testimonial to avoid recalculating
+  const currentTestimonial = useMemo(() => testimonials[currentIndex], [currentIndex]);
 
   return (
     <section id="testimonials" className="py-24 bg-[var(--muted)]">
@@ -58,14 +67,14 @@ export default function Testimonials() {
                 transition={{ duration: 0.6, ease: "easeOut" }}
               >
                 <blockquote className="text-lg text-zinc-700 italic mb-6 relative">
-                  <span className="text-4xl text-zinc-400 absolute -left-3 top-0">“</span>
-                  {testimonials[currentIndex].quote}
-                  <span className="text-4xl text-zinc-400 absolute -right-3 bottom-[-10px]">”</span>
+                  <span className="text-4xl text-zinc-400 absolute -left-3 top-0">"</span>
+                  {currentTestimonial.quote}
+                  <span className="text-4xl text-zinc-400 absolute -right-3 bottom-[-10px]">"</span>
                 </blockquote>
 
                 <footer className="mt-6">
-                  <div className="font-semibold text-zinc-900">{testimonials[currentIndex].author}</div>
-                  <div className="text-sm text-zinc-500">{testimonials[currentIndex].service}</div>
+                  <div className="font-semibold text-zinc-900">{currentTestimonial.author}</div>
+                  <div className="text-sm text-zinc-500">{currentTestimonial.service}</div>
                 </footer>
               </motion.div>
             </AnimatePresence>

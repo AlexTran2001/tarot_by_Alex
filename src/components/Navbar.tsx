@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -16,9 +16,18 @@ export default function Navbar() {
     const router = useRouter();
 
     useEffect(() => {
+        let ticking = false;
+        
         function onScroll() {
-            setScrolled(window.scrollY > 20);
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    setScrolled(window.scrollY > 20);
+                    ticking = false;
+                });
+                ticking = true;
+            }
         }
+        
         onScroll();
         window.addEventListener("scroll", onScroll, { passive: true });
         return () => window.removeEventListener("scroll", onScroll);
@@ -31,15 +40,21 @@ export default function Navbar() {
 
     // Check authentication
     useEffect(() => {
+        let mounted = true;
+        
         const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
-            setUser(user);
-            setLoading(false);
+            if (mounted) {
+                setUser(user);
+                setLoading(false);
+            }
         };
 
         checkUser();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (!mounted) return;
+            
             setUser(session?.user ?? null);
             // If signed out and on a protected page, redirect to home
             if (event === "SIGNED_OUT" && (pathname?.startsWith("/dashboard") ||
@@ -50,32 +65,40 @@ export default function Navbar() {
         });
 
         return () => {
+            mounted = false;
             subscription.unsubscribe();
         };
     }, [pathname, router]);
+
+    // Memoize scroll to hash function
+    const scrollToHash = useCallback((hash: string) => {
+        const element = document.querySelector(hash);
+        if (element) {
+            const navbarHeight = 80;
+            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition - navbarHeight;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: "smooth"
+            });
+        }
+    }, []);
 
     // Handle hash navigation on page load
     useEffect(() => {
         if (pathname === "/" && window.location.hash) {
             const hash = window.location.hash;
-            const element = document.querySelector(hash);
-            if (element) {
-                // Wait for page to fully render
-                setTimeout(() => {
-                    const navbarHeight = 80;
-                    const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-                    const offsetPosition = elementPosition - navbarHeight;
-
-                    window.scrollTo({
-                        top: offsetPosition,
-                        behavior: "smooth"
-                    });
-                }, 100);
-            }
+            // Wait for page to fully render
+            const timeoutId = setTimeout(() => {
+                scrollToHash(hash);
+            }, 100);
+            
+            return () => clearTimeout(timeoutId);
         }
-    }, [pathname]);
+    }, [pathname, scrollToHash]);
 
-    const handleLogout = async () => {
+    const handleLogout = useCallback(async () => {
         try {
             // Clear user state immediately for UI update
             setUser(null);
@@ -95,30 +118,33 @@ export default function Navbar() {
         } catch (err) {
             console.error("Logout error:", err);
         }
-    };
+    }, []);
 
-    const publicNavLinks = [
+    const publicNavLinks = useMemo(() => [
         { href: "#services", label: "Dịch vụ", isHash: true },
         { href: "#pricing", label: "Bảng giá", isHash: true },
         { href: "#booking", label: "Đặt lịch", isHash: true },
         { href: "/ads", label: "Quảng cáo", isHash: false },
-    ];
+    ], []);
 
-    const adminNavLinks = [
+    const adminNavLinks = useMemo(() => [
         { href: "/dashboard", label: "Dashboard", isHash: false },
         { href: "/ads/manage", label: "Quản lý Ads", isHash: false },
         { href: "/booking/manage", label: "Quản lý Booking", isHash: false },
-    ];
+    ], []);
 
-    const navLinks = user ? adminNavLinks : publicNavLinks;
+    const navLinks = useMemo(() => user ? adminNavLinks : publicNavLinks, [user, adminNavLinks, publicNavLinks]);
 
     // Check if we're on a management page
-    const isManagementPage = pathname?.startsWith("/dashboard") ||
+    const isManagementPage = useMemo(() => 
+        pathname?.startsWith("/dashboard") ||
         pathname?.startsWith("/ads/manage") ||
         pathname?.startsWith("/ads/new") ||
         (pathname?.startsWith("/ads/") && pathname?.includes("/edit")) ||
         pathname?.startsWith("/booking/manage") ||
-        pathname === "/login";
+        pathname === "/login",
+        [pathname]
+    );
 
     return (
         <header
@@ -147,17 +173,7 @@ export default function Navbar() {
                                     onClick={(e) => {
                                         if (pathname === "/") {
                                             e.preventDefault();
-                                            const element = document.querySelector(link.href);
-                                            if (element) {
-                                                const navbarHeight = 80; // Approximate navbar height
-                                                const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-                                                const offsetPosition = elementPosition - navbarHeight;
-
-                                                window.scrollTo({
-                                                    top: offsetPosition,
-                                                    behavior: "smooth"
-                                                });
-                                            }
+                                            scrollToHash(link.href);
                                         } else {
                                             e.preventDefault();
                                             router.push(`/${link.href}`);
@@ -254,17 +270,7 @@ export default function Navbar() {
                                                     onClick={(e) => {
                                                         if (pathname === "/") {
                                                             e.preventDefault();
-                                                            const element = document.querySelector(link.href);
-                                                            if (element) {
-                                                                const navbarHeight = 80; // Approximate navbar height
-                                                                const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-                                                                const offsetPosition = elementPosition - navbarHeight;
-
-                                                                window.scrollTo({
-                                                                    top: offsetPosition,
-                                                                    behavior: "smooth"
-                                                                });
-                                                            }
+                                                            scrollToHash(link.href);
                                                         } else {
                                                             e.preventDefault();
                                                             router.push(`/${link.href}`);

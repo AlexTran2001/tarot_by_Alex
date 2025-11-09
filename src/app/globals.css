@@ -9,14 +9,20 @@
   --font-be-vietnam: var(--font-be-vietnam, Inter, sans-serif);
 }
 
-* {
+/* Removed universal selector transition for better performance */
+/* Apply transitions only to specific elements that need them */
+a, button {
   transition: all 0.25s ease-out;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ffffff;
+/* Optimize animations for performance */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -65,5 +71,19 @@ body {
 /* Small helpers */
 .container-max {
   max-width: 1100px;
+}
+
+/* Typing cursor animation */
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+.cursor-blink {
+  animation: blink 1s infinite;
 }
 

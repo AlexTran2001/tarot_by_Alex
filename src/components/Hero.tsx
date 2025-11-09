@@ -1,6 +1,44 @@
-import Image from "next/image";
+"use client";
 
-export default function Hero() {
+import Image from "next/image";
+import { useState, useEffect, useRef, memo } from "react";
+
+const Hero = memo(function Hero() {
+  const text = "Chạm vào chính mình";
+  const [displayedText, setDisplayedText] = useState("");
+  const [isTyping, setIsTyping] = useState(true);
+  const currentIndexRef = useRef<number>(0);
+  const SPEED = 100; // milliseconds per character
+
+  useEffect(() => {
+    // Reset state when text changes
+    currentIndexRef.current = 0;
+    setDisplayedText("");
+    setIsTyping(true);
+
+    // Use a timeout-based approach for better control over typing speed
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    const typeNextChar = () => {
+      if (currentIndexRef.current < text.length) {
+        currentIndexRef.current += 1;
+        setDisplayedText(text.slice(0, currentIndexRef.current));
+        timeoutId = setTimeout(typeNextChar, SPEED);
+      } else {
+        setIsTyping(false);
+      }
+    };
+
+    // Start typing animation
+    timeoutId = setTimeout(typeNextChar, SPEED);
+
+    return () => {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [text]);
+
   return (
     <section
       id="hero"
@@ -12,15 +50,18 @@ export default function Hero() {
         <div className="text-center sm:text-left sm:w-1/2">
           <h1
             id="hero-title"
-            className="font-heading text-4xl md:text-4xl lg:text-5xl leading-tight text-black"
+            className="font-heading text-2xl md:text-3xl lg:text-4xl leading-tight text-black"
           >
-            Những trải nghiệm Tarot tĩnh lặng, chân thành và rõ ràng
+            {displayedText}
+            {isTyping && (
+              <span className="inline-block w-0.5 h-[1em] bg-black ml-1 align-middle cursor-blink">
+                |
+              </span>
+            )}
           </h1>
 
           <p className="mt-6 text-lg text-zinc-600 font-body">
-            Buổi đọc cá nhân hóa, kết hợp trực giác và hướng dẫn nhẹ nhàng để
-            giúp bạn nhìn rõ lựa chọn và di chuyển tiếp với tự tin. Có cả đọc
-            nhanh và phiên sâu tuỳ nhu cầu.
+            Tarot by Alex không chỉ dự đoán tương lai – đây là hành trình để bạn hiểu rõ hiện tại, vượt qua thử thách, và phát triển bản thân với sự thấu hiểu, đồng cảm và hướng dẫn từ trải bài Tarot.
           </p>
 
           <div className="mt-8 flex items-center justify-center sm:justify-start gap-4">
@@ -58,4 +99,6 @@ export default function Hero() {
       </div>
     </section>
   );
-}
+});
+
+export default Hero;

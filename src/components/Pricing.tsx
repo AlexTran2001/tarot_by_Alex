@@ -1,50 +1,59 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { memo } from 'react';
 
 interface PriceCardProps {
   name: string;
   price: string;
   duration: string;
+  pricingNote?: string;
   features: string[];
   isPopular?: boolean;
 }
 
-function PriceCard({ name, price, duration, features, isPopular }: PriceCardProps) {
+const PriceCard = memo(function PriceCard({ name, price, duration, pricingNote, features, isPopular }: PriceCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
       viewport={{ once: true }}
-      className={`relative flex flex-col p-8 rounded-2xl transition-all shadow-sm ${isPopular
-          ? 'bg-gradient-to-b from-white via-white to-zinc-50 border border-black/10 ring-2 ring-black/10'
-          : 'bg-white border border-zinc-200'
+      className={`relative flex flex-col p-6 md:p-8 rounded-2xl transition-all shadow-sm min-h-full ${isPopular
+        ? 'bg-gradient-to-b from-white via-white to-zinc-50 border border-black/10 ring-2 ring-black/10'
+        : 'bg-white border border-zinc-200'
         } hover:shadow-lg hover:-translate-y-1`}
     >
       {isPopular && (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-black text-white text-xs px-4 py-1 rounded-full tracking-wide shadow-sm">
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-black text-white text-xs px-4 py-1 rounded-full tracking-wide shadow-sm whitespace-nowrap">
           ✦ Phổ biến nhất ✦
         </div>
       )}
 
-      <div className="mb-6 text-center">
-        <h3 className="font-heading text-xl mb-1">{name}</h3>
-        <div className="flex justify-center items-baseline gap-1">
-          <span className="text-3xl font-semibold">{price}</span>
-          <span className="text-zinc-600">/ {duration}</span>
+      <div className="mb-5 text-center">
+        <h3 className="font-heading text-lg md:text-xl mb-3 leading-tight">{name}</h3>
+        <div className="flex flex-col items-center gap-1.5">
+          <div className="flex flex-col items-center gap-0.5">
+            <span className="text-2xl md:text-3xl font-semibold text-black">{price}</span>
+            {duration && (
+              <span className="text-zinc-600 text-xs md:text-sm leading-tight">{duration}</span>
+            )}
+          </div>
+          {pricingNote && (
+            <p className="text-xs text-zinc-500 mt-1 leading-relaxed px-2">{pricingNote}</p>
+          )}
         </div>
       </div>
 
-      <ul className="flex-1 space-y-3 mb-8 text-zinc-700">
+      <ul className="flex-1 space-y-2.5 mb-6 text-zinc-700">
         {features.map((feature, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm">
+          <li key={i} className="flex items-start gap-2.5 text-sm leading-relaxed">
             <svg
-              width="20"
-              height="20"
+              width="18"
+              height="18"
               viewBox="0 0 20 20"
               fill="none"
-              className="flex-none mt-0.5 text-black"
+              className="flex-none mt-0.5 text-black shrink-0"
             >
               <path
                 d="M7 10l2 2 4-4"
@@ -54,16 +63,16 @@ function PriceCard({ name, price, duration, features, isPopular }: PriceCardProp
                 strokeLinejoin="round"
               />
             </svg>
-            {feature}
+            <span className="flex-1">{feature}</span>
           </li>
         ))}
       </ul>
 
       <a
         href="#booking"
-        className={`relative block w-full py-2 text-center rounded-md text-sm font-medium overflow-hidden transition-all group ${isPopular
-            ? 'bg-black text-white hover:bg-zinc-900'
-            : 'border border-black text-black hover:bg-zinc-50'
+        className={`relative block w-full py-2.5 md:py-3 text-center rounded-md text-sm font-medium overflow-hidden transition-all group mt-auto ${isPopular
+          ? 'bg-black text-white hover:bg-zinc-900'
+          : 'border border-black text-black hover:bg-zinc-50'
           }`}
       >
         <span className="relative z-10">Đặt lịch ngay</span>
@@ -73,7 +82,7 @@ function PriceCard({ name, price, duration, features, isPopular }: PriceCardProp
       </a>
     </motion.div>
   );
-}
+});
 
 export default function Pricing() {
   return (
@@ -92,44 +101,42 @@ export default function Pricing() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-6 md:gap-8">
           <PriceCard
-            name="Góc nhìn nhanh"
-            price="500k"
-            duration="30 phút"
+            name="Trải bài cơ bản"
+            price="200.000đ"
+            duration="30 phút đầu tiên"
             features={[
-              'Trải bài nhanh cho 1 câu hỏi',
+              'Định hướng ngắn hạn, phù hợp người mới',
+              'Thường tập trung 1–2 trải bài',
+              'Về công việc, tình yêu, mối quan hệ',
               'Giải thích ý nghĩa lá bài',
-              'Góc nhìn tổng quan',
-              'Lời khuyên ngắn gọn',
             ]}
           />
 
           <PriceCard
-            name="Đọc chi tiết"
-            price="900k"
-            duration="60 phút"
+            name="Trải bài chuyên sâu"
+            price="200.000đ"
+            duration="30 phút đầu"
+            pricingNote="+ 50.000đ mỗi 30 phút tiếp theo"
             isPopular
             features={[
-              'Trải bài cho 2-3 câu hỏi',
-              'Phân tích sâu từng lá bài',
-              'Kết nối các yếu tố',
-              'Lời khuyên chi tiết',
-              'Ghi âm buổi đọc bài',
+              'Đào sâu vào cảm xúc, năng lượng',
+              'Sự nghiệp hoặc mối quan hệ',
+              'Hỗ trợ phân tích và chữa lành',
+              'Thời lượng linh hoạt 30–90 phút',
             ]}
           />
 
           <PriceCard
-            name="Hành trình sâu"
-            price="1.500k"
-            duration="90 phút"
+            name="Trải bài hằng ngày (VIP)"
+            price="Gói riêng"
+            duration="Theo tháng / quý"
             features={[
-              'Trải bài không giới hạn câu hỏi',
-              'Phân tích chuyên sâu',
-              'Kết hợp nhiều bộ bài',
-              'Lời khuyên toàn diện',
-              'Ghi âm buổi đọc bài',
-              '15p follow-up qua tin nhắn',
+              'Mỗi ngày nhận thông điệp 1 lá bài',
+              'Hướng dẫn năng lượng và cảm xúc',
+              'Cá nhân hóa theo nhu cầu',
+              'Liên hệ để biết thêm chi tiết',
             ]}
           />
         </div>
