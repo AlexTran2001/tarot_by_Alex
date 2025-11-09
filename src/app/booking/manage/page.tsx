@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
 import Breadcrumb from "@/components/Breadcrumb";
+import { checkIsAdmin } from "@/lib/adminUtils";
+import Link from "next/link";
 
 interface Booking {
     id: string;
@@ -60,9 +62,21 @@ export default function BookingManagePage() {
 
     useEffect(() => {
         if (user) {
+            // Only admin can access this page
+            if (!checkIsAdmin(user)) {
+                router.push("/");
+                return;
+            }
             fetchBookings();
         }
-    }, [user]);
+    }, [user, router]);
+
+    // Redirect non-admin users
+    useEffect(() => {
+        if (!loading && user && !checkIsAdmin(user)) {
+            router.push("/");
+        }
+    }, [user, loading, router]);
 
     useEffect(() => {
         // Filter and sort bookings
@@ -173,6 +187,28 @@ export default function BookingManagePage() {
                         ></path>
                     </svg>
                     <p className="text-gray-600 font-body">Đang tải...</p>
+                </div>
+            </main>
+        );
+    }
+
+    // Only admin can access this page
+    if (!loading && user && !checkIsAdmin(user)) {
+        return (
+            <main className="min-h-screen flex items-center justify-center pt-24">
+                <div className="text-center">
+                    <h1 className="text-2xl font-heading font-bold text-black mb-4">
+                        Truy cập bị từ chối
+                    </h1>
+                    <p className="text-gray-600 font-body mb-4">
+                        Chỉ quản trị viên mới có thể truy cập trang này.
+                    </p>
+                    <Link
+                        href="/"
+                        className="inline-block px-6 py-3 bg-black text-white rounded-md font-medium font-body hover:bg-gray-800 transition-all"
+                    >
+                        Về trang chủ
+                    </Link>
                 </div>
             </main>
         );

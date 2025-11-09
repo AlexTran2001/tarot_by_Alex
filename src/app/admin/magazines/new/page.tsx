@@ -1,18 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
-import FormAd from "@/components/ads/FormAd";
+import FormMagazine from "@/components/admin/FormMagazine";
 import Breadcrumb from "@/components/Breadcrumb";
+import { checkIsAdmin } from "@/lib/adminUtils";
 
-export default function EditAdPage() {
+export default function NewMagazinePage() {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
-    const params = useParams();
-    const id = params?.id as string;
 
     useEffect(() => {
         let mounted = true;
@@ -102,20 +102,18 @@ export default function EditAdPage() {
     return (
         <main className="min-h-screen px-4 pt-24 pb-12 bg-white">
             <div className="container-max mx-auto">
-                <Breadcrumb
+                <Breadcrumb 
                     items={[
                         { label: "Dashboard", href: "/dashboard" },
-                        { label: "Quản lý Ads", href: "/ads/manage" },
-                        { label: "Chỉnh sửa" },
-                    ]}
+                        { label: "Quản lý Tạp Chí", href: "/admin/magazines/manage" },
+                        { label: "Tạo mới" }
+                    ]} 
                 />
                 <div className="mb-8">
-                    <h1 className="text-4xl font-heading font-bold text-black mb-2">
-                        Chỉnh sửa quảng cáo
-                    </h1>
-                    <p className="text-gray-600 font-body">Cập nhật thông tin quảng cáo</p>
+                    <h1 className="text-4xl font-heading font-bold text-black mb-2">Tạo tạp chí mới</h1>
+                    <p className="text-gray-600 font-body">Tạo và đăng bài tạp chí mới</p>
                 </div>
-                <FormAd adId={id} />
+                <FormMagazine />
             </div>
         </main>
     );

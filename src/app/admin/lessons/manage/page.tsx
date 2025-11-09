@@ -8,27 +8,29 @@ import type { User } from "@supabase/supabase-js";
 import Breadcrumb from "@/components/Breadcrumb";
 import { checkIsAdmin } from "@/lib/adminUtils";
 
-interface Ad {
+interface Lesson {
     id: string;
     title: string;
     content: string;
+    video_url: string | null;
     image_url: string | null;
-    expire_at: string | null;
+    order_number: number;
+    lesson_type: string;
     created_at: string;
 }
 
-type SortField = "created_at" | "title" | "expire_at";
+type SortField = "created_at" | "title" | "order_number";
 type SortOrder = "asc" | "desc";
 
-export default function AdsManagePage() {
+export default function LessonsManagePage() {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
-    const [ads, setAds] = useState<Ad[]>([]);
-    const [filteredAds, setFilteredAds] = useState<Ad[]>([]);
-    const [adsLoading, setAdsLoading] = useState(true);
+    const [lessons, setLessons] = useState<Lesson[]>([]);
+    const [filteredLessons, setFilteredLessons] = useState<Lesson[]>([]);
+    const [lessonsLoading, setLessonsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
-    const [sortField, setSortField] = useState<SortField>("created_at");
-    const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+    const [sortField, setSortField] = useState<SortField>("order_number");
+    const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
     const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
     const router = useRouter();
 
@@ -65,7 +67,7 @@ export default function AdsManagePage() {
                 router.push("/");
                 return;
             }
-            fetchAds();
+            fetchLessons();
         }
     }, [user, router]);
 
@@ -77,16 +79,17 @@ export default function AdsManagePage() {
     }, [user, loading, router]);
 
     useEffect(() => {
-        // Filter and sort ads
-        let filtered = [...ads];
+        // Filter and sort lessons
+        let filtered = [...lessons];
 
         // Search filter
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(
-                (ad) =>
-                    ad.title.toLowerCase().includes(query) ||
-                    ad.content?.toLowerCase().includes(query)
+                (lesson) =>
+                    lesson.title.toLowerCase().includes(query) ||
+                    lesson.content?.toLowerCase().includes(query) ||
+                    lesson.lesson_type?.toLowerCase().includes(query)
             );
         }
 
@@ -95,9 +98,12 @@ export default function AdsManagePage() {
             let aVal: any = a[sortField];
             let bVal: any = b[sortField];
 
-            if (sortField === "created_at" || sortField === "expire_at") {
+            if (sortField === "created_at") {
                 aVal = aVal ? new Date(aVal).getTime() : 0;
                 bVal = bVal ? new Date(bVal).getTime() : 0;
+            } else if (sortField === "order_number") {
+                aVal = aVal || 0;
+                bVal = bVal || 0;
             } else {
                 aVal = aVal?.toLowerCase() || "";
                 bVal = bVal?.toLowerCase() || "";
@@ -110,49 +116,73 @@ export default function AdsManagePage() {
             }
         });
 
-        setFilteredAds(filtered);
-    }, [ads, searchQuery, sortField, sortOrder]);
+        setFilteredLessons(filtered);
+    }, [lessons, searchQuery, sortField, sortOrder]);
 
-    const fetchAds = async () => {
+    const fetchLessons = async () => {
         try {
-            setAdsLoading(true);
-            const { data, error } = await supabase
-                .from("ads")
-                .select("*")
-                .order("created_at", { ascending: false });
+            setLessonsLoading(true);
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                throw new Error("Phiên đăng nhập đã hết hạn");
+            }
 
-            if (error) {
-                console.error("Error fetching ads:", error);
-                setAds([]);
+            // Build query string with pagination parameters
+            const params = new URLSearchParams({
+                page: "1",
+                limit: "1000", // Get all lessons for client-side filtering
+            });
+
+            const response = await fetch(`/api/admin/lessons?${params.toString()}`, {
+                headers: {
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("Error fetching lessons:", data.error);
+                setLessons([]);
             } else {
-                setAds(data || []);
+                setLessons(data.lessons || []);
             }
         } catch (err) {
             console.error("Error:", err);
-            setAds([]);
+            setLessons([]);
         } finally {
-            setAdsLoading(false);
+            setLessonsLoading(false);
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Bạn có chắc chắn muốn xóa quảng cáo này?")) {
+        if (!confirm("Bạn có chắc chắn muốn xóa khóa học này?")) {
             return;
         }
 
         try {
             setDeleteLoading(id);
-            const { error } = await supabase.from("ads").delete().eq("id", id);
-
-            if (error) {
-                console.error("Error deleting ad:", error);
-                alert("Lỗi khi xóa quảng cáo");
-            } else {
-                setAds(ads.filter((ad) => ad.id !== id));
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                throw new Error("Phiên đăng nhập đã hết hạn");
             }
-        } catch (err) {
+
+            const response = await fetch(`/api/admin/lessons/${id}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Lỗi khi xóa khóa học");
+            }
+
+            setLessons(lessons.filter((l) => l.id !== id));
+        } catch (err: any) {
             console.error("Error:", err);
-            alert("Lỗi khi xóa quảng cáo");
+            alert("Lỗi khi xóa khóa học: " + err.message);
         } finally {
             setDeleteLoading(null);
         }
@@ -216,7 +246,7 @@ export default function AdsManagePage() {
                 <Breadcrumb
                     items={[
                         { label: "Dashboard", href: "/dashboard" },
-                        { label: "Quản lý Ads" },
+                        { label: "Quản lý Khóa Học" },
                     ]}
                 />
 
@@ -224,14 +254,14 @@ export default function AdsManagePage() {
                     <div className="flex justify-between items-center mb-4">
                         <div>
                             <h1 className="text-4xl font-heading font-bold text-black mb-2">
-                                Quản lý Ads
+                                Quản lý Khóa Học
                             </h1>
                             <p className="text-gray-600 font-body">
-                                Quản lý và chỉnh sửa các bài quảng cáo
+                                Quản lý và chỉnh sửa các khóa học VIP
                             </p>
                         </div>
                         <Link
-                            href="/ads/new"
+                            href="/admin/lessons/new"
                             className="px-6 py-3 bg-black text-white rounded-md font-medium font-body hover:bg-gray-800 transition-all"
                         >
                             + Tạo mới
@@ -243,7 +273,7 @@ export default function AdsManagePage() {
                         <div className="flex-1">
                             <input
                                 type="text"
-                                placeholder="Tìm kiếm theo tiêu đề hoặc nội dung..."
+                                placeholder="Tìm kiếm theo tiêu đề, nội dung hoặc loại..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent font-body"
@@ -255,9 +285,9 @@ export default function AdsManagePage() {
                                 onChange={(e) => setSortField(e.target.value as SortField)}
                                 className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent font-body"
                             >
+                                <option value="order_number">Số thứ tự</option>
                                 <option value="created_at">Ngày tạo</option>
                                 <option value="title">Tiêu đề</option>
-                                <option value="expire_at">Ngày hết hạn</option>
                             </select>
                             <button
                                 onClick={() =>
@@ -272,7 +302,7 @@ export default function AdsManagePage() {
                     </div>
                 </div>
 
-                {adsLoading ? (
+                {lessonsLoading ? (
                     <div className="text-center py-12">
                         <svg
                             className="animate-spin h-8 w-8 text-black mx-auto mb-4"
@@ -296,17 +326,17 @@ export default function AdsManagePage() {
                         </svg>
                         <p className="text-gray-600 font-body">Đang tải dữ liệu...</p>
                     </div>
-                ) : filteredAds.length === 0 ? (
+                ) : filteredLessons.length === 0 ? (
                     <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm text-center">
                         <p className="text-gray-600 font-body mb-4">
-                            {searchQuery ? "Không tìm thấy kết quả." : "Chưa có quảng cáo nào."}
+                            {searchQuery ? "Không tìm thấy kết quả." : "Chưa có khóa học nào."}
                         </p>
                         {!searchQuery && (
                             <Link
-                                href="/ads/new"
-                                className="text-black font-medium hover:underline"
+                                href="/admin/lessons/new"
+                                className="inline-block px-6 py-3 bg-black text-white rounded-md font-medium font-body hover:bg-gray-800 transition-all"
                             >
-                                Tạo quảng cáo đầu tiên →
+                                Tạo khóa học đầu tiên
                             </Link>
                         )}
                     </div>
@@ -317,16 +347,13 @@ export default function AdsManagePage() {
                                 <thead className="bg-gray-50 border-b border-gray-200">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-body">
-                                            Hình ảnh
+                                            Số TT
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-body">
                                             Tiêu đề
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-body">
-                                            Nội dung
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-body">
-                                            Hết hạn
+                                            Loại
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-body">
                                             Ngày tạo
@@ -337,84 +364,46 @@ export default function AdsManagePage() {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {filteredAds.map((ad) => {
-                                        const expired =
-                                            ad.expire_at && new Date(ad.expire_at) < new Date();
-                                        return (
-                                            <tr key={ad.id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4">
-                                                    {ad.image_url ? (
-                                                        <img
-                                                            src={ad.image_url}
-                                                            alt={ad.title}
-                                                            className="w-16 h-16 object-cover rounded"
-                                                            onError={(e) => {
-                                                                (
-                                                                    e.target as HTMLImageElement
-                                                                ).style.display = "none";
-                                                            }}
-                                                        />
-                                                    ) : (
-                                                        <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
-                                                            <span className="text-gray-400 text-xs">
-                                                                No image
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm font-medium text-gray-900 font-body">
-                                                        {ad.title}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm text-gray-600 font-body max-w-xs truncate">
-                                                        {ad.content || "-"}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-600 font-body">
-                                                        {ad.expire_at
-                                                            ? new Date(ad.expire_at).toLocaleDateString(
-                                                                  "vi-VN"
-                                                              )
-                                                            : "Không hết hạn"}
-                                                        {expired && (
-                                                            <span className="ml-2 text-xs text-rose-500">
-                                                                (Hết hạn)
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-500 font-body">
-                                                        {new Date(ad.created_at).toLocaleDateString(
-                                                            "vi-VN"
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium font-body">
-                                                    <div className="flex gap-2">
-                                                        <Link
-                                                            href={`/ads/${ad.id}/edit`}
-                                                            className="text-indigo-600 hover:text-indigo-900"
-                                                        >
-                                                            Sửa
-                                                        </Link>
-                                                        <button
-                                                            onClick={() => handleDelete(ad.id)}
-                                                            disabled={deleteLoading === ad.id}
-                                                            className="text-rose-600 hover:text-rose-900 disabled:opacity-50"
-                                                        >
-                                                            {deleteLoading === ad.id
-                                                                ? "Đang xóa..."
-                                                                : "Xóa"}
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
+                                    {filteredLessons.map((lesson) => (
+                                        <tr key={lesson.id} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 font-body">
+                                                {lesson.order_number}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="text-sm font-medium text-gray-900 font-body">
+                                                    {lesson.title}
+                                                </div>
+                                                <div className="text-sm text-gray-500 font-body line-clamp-2">
+                                                    {lesson.content.substring(0, 100)}...
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-body">
+                                                {lesson.lesson_type}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-body">
+                                                {new Date(lesson.created_at).toLocaleDateString("vi-VN")}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium font-body">
+                                                <div className="flex gap-2">
+                                                    <Link
+                                                        href={`/admin/lessons/${lesson.id}/edit`}
+                                                        className="text-indigo-600 hover:text-indigo-900"
+                                                    >
+                                                        Sửa
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => handleDelete(lesson.id)}
+                                                        disabled={deleteLoading === lesson.id}
+                                                        className="text-rose-600 hover:text-rose-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        {deleteLoading === lesson.id
+                                                            ? "Đang xóa..."
+                                                            : "Xóa"}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
@@ -424,4 +413,3 @@ export default function AdsManagePage() {
         </main>
     );
 }
-

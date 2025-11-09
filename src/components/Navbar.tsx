@@ -6,6 +6,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
+import { useVIP } from "@/hooks/useVIP";
+import { checkIsAdmin } from "@/lib/adminUtils";
 
 export default function Navbar() {
     const [scrolled, setScrolled] = useState(false);
@@ -14,6 +16,7 @@ export default function Navbar() {
     const [loading, setLoading] = useState(true);
     const pathname = usePathname();
     const router = useRouter();
+    const { isVip } = useVIP();
 
     useEffect(() => {
         let ticking = false;
@@ -131,9 +134,48 @@ export default function Navbar() {
         { href: "/dashboard", label: "Dashboard", isHash: false },
         { href: "/ads/manage", label: "Quản lý Ads", isHash: false },
         { href: "/booking/manage", label: "Quản lý Booking", isHash: false },
+        { href: "/users/manage", label: "Quản lý Người dùng", isHash: false },
+        { href: "/admin/magazines/manage", label: "Quản lý Tạp Chí", isHash: false },
+        { href: "/admin/daily-cards/manage", label: "Quản lý Bài Tarot", isHash: false },
+        { href: "/admin/lessons/manage", label: "Quản lý Khóa Học", isHash: false },
     ], []);
 
-    const navLinks = useMemo(() => user ? adminNavLinks : publicNavLinks, [user, adminNavLinks, publicNavLinks]);
+    const vipNavLinks = useMemo(() => [
+        { href: "/vip/dashboard", label: "VIP Dashboard", isHash: false },
+        { href: "/vip/today-card", label: "Bài Hôm Nay", isHash: false },
+        { href: "/vip/magazines", label: "Tạp Chí", isHash: false },
+        { href: "/vip/lessons", label: "Khóa Học", isHash: false },
+    ], []);
+
+    const navLinks = useMemo(() => {
+        if (user) {
+            // Admin users see admin links, VIP users see VIP links
+            // You can customize this logic based on your needs
+            return adminNavLinks;
+        }
+        return publicNavLinks;
+    }, [user, adminNavLinks, publicNavLinks]);
+
+    // Check if user is admin
+    const isAdmin = useMemo(() => checkIsAdmin(user), [user]);
+
+    // VIP links - only show to VIP users (not admin links)
+    // Admin links - only show to admin@gmail.com
+    const displayNavLinks = useMemo(() => {
+        if (!user) {
+            return publicNavLinks;
+        }
+        // Admin users see admin links
+        if (isAdmin) {
+            return adminNavLinks;
+        }
+        // VIP users see only VIP links (not admin links)
+        if (isVip) {
+            return vipNavLinks;
+        }
+        // Regular authenticated users see nothing (redirect to home)
+        return [];
+    }, [user, isAdmin, isVip, adminNavLinks, vipNavLinks, publicNavLinks]);
 
     // Check if we're on a management page
     const isManagementPage = useMemo(() => 
@@ -142,6 +184,9 @@ export default function Navbar() {
         pathname?.startsWith("/ads/new") ||
         (pathname?.startsWith("/ads/") && pathname?.includes("/edit")) ||
         pathname?.startsWith("/booking/manage") ||
+        pathname?.startsWith("/users/manage") ||
+        pathname?.startsWith("/admin") ||
+        pathname?.startsWith("/vip") ||
         pathname === "/login",
         [pathname]
     );
@@ -162,9 +207,9 @@ export default function Navbar() {
                     Tarot by Alex
                 </Link>
 
-                {/* Desktop nav */}
-                <nav aria-label="Primary" className="hidden sm:flex items-center gap-6 text-sm text-zinc-800">
-                    {navLinks.map((link) => {
+                        {/* Desktop nav */}
+                        <nav aria-label="Primary" className="hidden sm:flex items-center gap-6 text-sm text-zinc-800">
+                            {displayNavLinks.map((link) => {
                         if (link.isHash) {
                             return (
                                 <a
@@ -260,8 +305,8 @@ export default function Navbar() {
                                 transition={{ duration: 0.3 }}
                                 className="absolute right-4 top-16 z-50 w-52 rounded-2xl bg-white shadow-xl border border-black/5"
                             >
-                                <div className="flex flex-col p-2">
-                                    {navLinks.map((link) => {
+                                        <div className="flex flex-col p-2">
+                                            {displayNavLinks.map((link) => {
                                         if (link.isHash) {
                                             return (
                                                 <a

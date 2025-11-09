@@ -6,11 +6,14 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
 import Breadcrumb from "@/components/Breadcrumb";
+import { checkIsAdmin } from "@/lib/adminUtils";
+import { useVIP } from "@/hooks/useVIP";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { isVip } = useVIP();
 
   useEffect(() => {
     let mounted = true;
@@ -30,6 +33,12 @@ export default function DashboardPage() {
       } else {
         setUser(session.user);
         setLoading(false);
+        
+        // Redirect VIP users to VIP dashboard
+        if (mounted && session.user && !checkIsAdmin(session.user)) {
+          // Check VIP status and redirect if VIP
+          // This will be handled after VIP status loads
+        }
       }
     });
 
@@ -38,6 +47,23 @@ export default function DashboardPage() {
       subscription.unsubscribe();
     };
   }, [router]);
+
+  // Redirect non-admin users
+  useEffect(() => {
+    if (!loading && user) {
+      const isAdmin = checkIsAdmin(user);
+      if (!isAdmin) {
+        // If VIP, redirect to VIP dashboard
+        if (isVip) {
+          router.push("/vip/dashboard");
+          return;
+        }
+        // If not VIP and not admin, redirect to home
+        router.push("/");
+        return;
+      }
+    }
+  }, [user, loading, isVip, router]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -75,6 +101,11 @@ export default function DashboardPage() {
     );
   }
 
+  // Only show dashboard to admin users
+  if (!loading && user && !checkIsAdmin(user)) {
+    return null; // Will redirect in useEffect
+  }
+
   return (
     <main className="min-h-screen px-4 pt-24 pb-12 bg-white">
       <div className="container-max mx-auto">
@@ -94,7 +125,7 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Link
             href="/ads/manage"
             className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all hover:border-black"
@@ -110,6 +141,42 @@ export default function DashboardPage() {
           >
             <h3 className="text-xl font-heading font-bold text-black mb-2">Quản lý Booking</h3>
             <p className="text-gray-600 font-body text-sm mb-4">Xem và quản lý các đặt lịch Tarot</p>
+            <span className="text-black font-body text-sm font-medium">Xem chi tiết →</span>
+          </Link>
+
+          <Link
+            href="/users/manage"
+            className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all hover:border-black"
+          >
+            <h3 className="text-xl font-heading font-bold text-black mb-2">Quản lý Người dùng</h3>
+            <p className="text-gray-600 font-body text-sm mb-4">Quản lý tài khoản người dùng</p>
+            <span className="text-black font-body text-sm font-medium">Xem chi tiết →</span>
+          </Link>
+
+          <Link
+            href="/admin/magazines/manage"
+            className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all hover:border-black"
+          >
+            <h3 className="text-xl font-heading font-bold text-black mb-2">Quản lý Tạp Chí</h3>
+            <p className="text-gray-600 font-body text-sm mb-4">Tạo và quản lý các bài tạp chí VIP</p>
+            <span className="text-black font-body text-sm font-medium">Xem chi tiết →</span>
+          </Link>
+
+          <Link
+            href="/admin/daily-cards/manage"
+            className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all hover:border-black"
+          >
+            <h3 className="text-xl font-heading font-bold text-black mb-2">Quản lý Bài Tarot Hôm Nay</h3>
+            <p className="text-gray-600 font-body text-sm mb-4">Tạo và quản lý các bài Tarot hàng ngày</p>
+            <span className="text-black font-body text-sm font-medium">Xem chi tiết →</span>
+          </Link>
+
+          <Link
+            href="/admin/lessons/manage"
+            className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all hover:border-black"
+          >
+            <h3 className="text-xl font-heading font-bold text-black mb-2">Quản lý Khóa Học</h3>
+            <p className="text-gray-600 font-body text-sm mb-4">Tạo và quản lý các khóa học VIP</p>
             <span className="text-black font-body text-sm font-medium">Xem chi tiết →</span>
           </Link>
         </div>

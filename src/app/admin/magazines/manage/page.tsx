@@ -8,26 +8,26 @@ import type { User } from "@supabase/supabase-js";
 import Breadcrumb from "@/components/Breadcrumb";
 import { checkIsAdmin } from "@/lib/adminUtils";
 
-interface Ad {
+interface Magazine {
     id: string;
     title: string;
     content: string;
     image_url: string | null;
-    expire_at: string | null;
+    published_at: string;
     created_at: string;
 }
 
-type SortField = "created_at" | "title" | "expire_at";
+type SortField = "created_at" | "title" | "published_at";
 type SortOrder = "asc" | "desc";
 
-export default function AdsManagePage() {
+export default function MagazinesManagePage() {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
-    const [ads, setAds] = useState<Ad[]>([]);
-    const [filteredAds, setFilteredAds] = useState<Ad[]>([]);
-    const [adsLoading, setAdsLoading] = useState(true);
+    const [magazines, setMagazines] = useState<Magazine[]>([]);
+    const [filteredMagazines, setFilteredMagazines] = useState<Magazine[]>([]);
+    const [magazinesLoading, setMagazinesLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
-    const [sortField, setSortField] = useState<SortField>("created_at");
+    const [sortField, setSortField] = useState<SortField>("published_at");
     const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
     const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
     const router = useRouter();
@@ -65,7 +65,7 @@ export default function AdsManagePage() {
                 router.push("/");
                 return;
             }
-            fetchAds();
+            fetchMagazines();
         }
     }, [user, router]);
 
@@ -77,16 +77,16 @@ export default function AdsManagePage() {
     }, [user, loading, router]);
 
     useEffect(() => {
-        // Filter and sort ads
-        let filtered = [...ads];
+        // Filter and sort magazines
+        let filtered = [...magazines];
 
         // Search filter
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(
-                (ad) =>
-                    ad.title.toLowerCase().includes(query) ||
-                    ad.content?.toLowerCase().includes(query)
+                (magazine) =>
+                    magazine.title.toLowerCase().includes(query) ||
+                    magazine.content?.toLowerCase().includes(query)
             );
         }
 
@@ -95,7 +95,7 @@ export default function AdsManagePage() {
             let aVal: any = a[sortField];
             let bVal: any = b[sortField];
 
-            if (sortField === "created_at" || sortField === "expire_at") {
+            if (sortField === "created_at" || sortField === "published_at") {
                 aVal = aVal ? new Date(aVal).getTime() : 0;
                 bVal = bVal ? new Date(bVal).getTime() : 0;
             } else {
@@ -110,49 +110,73 @@ export default function AdsManagePage() {
             }
         });
 
-        setFilteredAds(filtered);
-    }, [ads, searchQuery, sortField, sortOrder]);
+        setFilteredMagazines(filtered);
+    }, [magazines, searchQuery, sortField, sortOrder]);
 
-    const fetchAds = async () => {
+    const fetchMagazines = async () => {
         try {
-            setAdsLoading(true);
-            const { data, error } = await supabase
-                .from("ads")
-                .select("*")
-                .order("created_at", { ascending: false });
+            setMagazinesLoading(true);
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                throw new Error("Phiên đăng nhập đã hết hạn");
+            }
 
-            if (error) {
-                console.error("Error fetching ads:", error);
-                setAds([]);
+            // Build query string with pagination parameters
+            const params = new URLSearchParams({
+                page: "1",
+                limit: "1000", // Get all magazines for client-side filtering
+            });
+
+            const response = await fetch(`/api/admin/magazines?${params.toString()}`, {
+                headers: {
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("Error fetching magazines:", data.error);
+                setMagazines([]);
             } else {
-                setAds(data || []);
+                setMagazines(data.magazines || []);
             }
         } catch (err) {
             console.error("Error:", err);
-            setAds([]);
+            setMagazines([]);
         } finally {
-            setAdsLoading(false);
+            setMagazinesLoading(false);
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Bạn có chắc chắn muốn xóa quảng cáo này?")) {
+        if (!confirm("Bạn có chắc chắn muốn xóa tạp chí này?")) {
             return;
         }
 
         try {
             setDeleteLoading(id);
-            const { error } = await supabase.from("ads").delete().eq("id", id);
-
-            if (error) {
-                console.error("Error deleting ad:", error);
-                alert("Lỗi khi xóa quảng cáo");
-            } else {
-                setAds(ads.filter((ad) => ad.id !== id));
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                throw new Error("Phiên đăng nhập đã hết hạn");
             }
-        } catch (err) {
+
+            const response = await fetch(`/api/admin/magazines/${id}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Lỗi khi xóa tạp chí");
+            }
+
+            setMagazines(magazines.filter((m) => m.id !== id));
+        } catch (err: any) {
             console.error("Error:", err);
-            alert("Lỗi khi xóa quảng cáo");
+            alert("Lỗi khi xóa tạp chí: " + err.message);
         } finally {
             setDeleteLoading(null);
         }
@@ -216,7 +240,7 @@ export default function AdsManagePage() {
                 <Breadcrumb
                     items={[
                         { label: "Dashboard", href: "/dashboard" },
-                        { label: "Quản lý Ads" },
+                        { label: "Quản lý Tạp Chí" },
                     ]}
                 />
 
@@ -224,14 +248,14 @@ export default function AdsManagePage() {
                     <div className="flex justify-between items-center mb-4">
                         <div>
                             <h1 className="text-4xl font-heading font-bold text-black mb-2">
-                                Quản lý Ads
+                                Quản lý Tạp Chí
                             </h1>
                             <p className="text-gray-600 font-body">
-                                Quản lý và chỉnh sửa các bài quảng cáo
+                                Quản lý và chỉnh sửa các bài tạp chí VIP
                             </p>
                         </div>
                         <Link
-                            href="/ads/new"
+                            href="/admin/magazines/new"
                             className="px-6 py-3 bg-black text-white rounded-md font-medium font-body hover:bg-gray-800 transition-all"
                         >
                             + Tạo mới
@@ -255,9 +279,9 @@ export default function AdsManagePage() {
                                 onChange={(e) => setSortField(e.target.value as SortField)}
                                 className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent font-body"
                             >
+                                <option value="published_at">Ngày xuất bản</option>
                                 <option value="created_at">Ngày tạo</option>
                                 <option value="title">Tiêu đề</option>
-                                <option value="expire_at">Ngày hết hạn</option>
                             </select>
                             <button
                                 onClick={() =>
@@ -272,7 +296,7 @@ export default function AdsManagePage() {
                     </div>
                 </div>
 
-                {adsLoading ? (
+                {magazinesLoading ? (
                     <div className="text-center py-12">
                         <svg
                             className="animate-spin h-8 w-8 text-black mx-auto mb-4"
@@ -296,17 +320,17 @@ export default function AdsManagePage() {
                         </svg>
                         <p className="text-gray-600 font-body">Đang tải dữ liệu...</p>
                     </div>
-                ) : filteredAds.length === 0 ? (
+                ) : filteredMagazines.length === 0 ? (
                     <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm text-center">
                         <p className="text-gray-600 font-body mb-4">
-                            {searchQuery ? "Không tìm thấy kết quả." : "Chưa có quảng cáo nào."}
+                            {searchQuery ? "Không tìm thấy kết quả." : "Chưa có tạp chí nào."}
                         </p>
                         {!searchQuery && (
                             <Link
-                                href="/ads/new"
-                                className="text-black font-medium hover:underline"
+                                href="/admin/magazines/new"
+                                className="inline-block px-6 py-3 bg-black text-white rounded-md font-medium font-body hover:bg-gray-800 transition-all"
                             >
-                                Tạo quảng cáo đầu tiên →
+                                Tạo tạp chí đầu tiên
                             </Link>
                         )}
                     </div>
@@ -317,16 +341,10 @@ export default function AdsManagePage() {
                                 <thead className="bg-gray-50 border-b border-gray-200">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-body">
-                                            Hình ảnh
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-body">
                                             Tiêu đề
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-body">
-                                            Nội dung
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-body">
-                                            Hết hạn
+                                            Ngày xuất bản
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-body">
                                             Ngày tạo
@@ -337,84 +355,45 @@ export default function AdsManagePage() {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {filteredAds.map((ad) => {
-                                        const expired =
-                                            ad.expire_at && new Date(ad.expire_at) < new Date();
-                                        return (
-                                            <tr key={ad.id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4">
-                                                    {ad.image_url ? (
-                                                        <img
-                                                            src={ad.image_url}
-                                                            alt={ad.title}
-                                                            className="w-16 h-16 object-cover rounded"
-                                                            onError={(e) => {
-                                                                (
-                                                                    e.target as HTMLImageElement
-                                                                ).style.display = "none";
-                                                            }}
-                                                        />
-                                                    ) : (
-                                                        <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
-                                                            <span className="text-gray-400 text-xs">
-                                                                No image
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm font-medium text-gray-900 font-body">
-                                                        {ad.title}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm text-gray-600 font-body max-w-xs truncate">
-                                                        {ad.content || "-"}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-600 font-body">
-                                                        {ad.expire_at
-                                                            ? new Date(ad.expire_at).toLocaleDateString(
-                                                                  "vi-VN"
-                                                              )
-                                                            : "Không hết hạn"}
-                                                        {expired && (
-                                                            <span className="ml-2 text-xs text-rose-500">
-                                                                (Hết hạn)
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-500 font-body">
-                                                        {new Date(ad.created_at).toLocaleDateString(
-                                                            "vi-VN"
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium font-body">
-                                                    <div className="flex gap-2">
-                                                        <Link
-                                                            href={`/ads/${ad.id}/edit`}
-                                                            className="text-indigo-600 hover:text-indigo-900"
-                                                        >
-                                                            Sửa
-                                                        </Link>
-                                                        <button
-                                                            onClick={() => handleDelete(ad.id)}
-                                                            disabled={deleteLoading === ad.id}
-                                                            className="text-rose-600 hover:text-rose-900 disabled:opacity-50"
-                                                        >
-                                                            {deleteLoading === ad.id
-                                                                ? "Đang xóa..."
-                                                                : "Xóa"}
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
+                                    {filteredMagazines.map((magazine) => (
+                                        <tr key={magazine.id} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4">
+                                                <div className="text-sm font-medium text-gray-900 font-body">
+                                                    {magazine.title}
+                                                </div>
+                                                <div className="text-sm text-gray-500 font-body line-clamp-2">
+                                                    {magazine.content.substring(0, 100)}...
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-body">
+                                                {magazine.published_at
+                                                    ? new Date(magazine.published_at).toLocaleDateString("vi-VN")
+                                                    : "-"}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-body">
+                                                {new Date(magazine.created_at).toLocaleDateString("vi-VN")}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium font-body">
+                                                <div className="flex gap-2">
+                                                    <Link
+                                                        href={`/admin/magazines/${magazine.id}/edit`}
+                                                        className="text-indigo-600 hover:text-indigo-900"
+                                                    >
+                                                        Sửa
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => handleDelete(magazine.id)}
+                                                        disabled={deleteLoading === magazine.id}
+                                                        className="text-rose-600 hover:text-rose-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        {deleteLoading === magazine.id
+                                                            ? "Đang xóa..."
+                                                            : "Xóa"}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
@@ -424,4 +403,3 @@ export default function AdsManagePage() {
         </main>
     );
 }
-

@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
-import FormAd from "@/components/ads/FormAd";
+import FormDailyCard from "@/components/admin/FormDailyCard";
 import Breadcrumb from "@/components/Breadcrumb";
+import { checkIsAdmin } from "@/lib/adminUtils";
 
-export default function EditAdPage() {
+export default function EditDailyCardPage() {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
@@ -105,17 +107,17 @@ export default function EditAdPage() {
                 <Breadcrumb
                     items={[
                         { label: "Dashboard", href: "/dashboard" },
-                        { label: "Quản lý Ads", href: "/ads/manage" },
+                        { label: "Quản lý Bài Tarot Hôm Nay", href: "/admin/daily-cards/manage" },
                         { label: "Chỉnh sửa" },
                     ]}
                 />
                 <div className="mb-8">
                     <h1 className="text-4xl font-heading font-bold text-black mb-2">
-                        Chỉnh sửa quảng cáo
+                        Chỉnh sửa bài Tarot
                     </h1>
-                    <p className="text-gray-600 font-body">Cập nhật thông tin quảng cáo</p>
+                    <p className="text-gray-600 font-body">Cập nhật thông tin bài Tarot</p>
                 </div>
-                <FormAd adId={id} />
+                <FormDailyCard cardId={id} />
             </div>
         </main>
     );
