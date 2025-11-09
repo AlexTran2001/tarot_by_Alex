@@ -20,7 +20,7 @@ function getSupabaseAdmin() {
 // PUT - Update a user
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabaseAdmin = getSupabaseAdmin();
@@ -56,7 +56,7 @@ export async function PUT(
 // DELETE - Delete a user
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabaseAdmin = getSupabaseAdmin();
