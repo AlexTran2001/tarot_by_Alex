@@ -179,6 +179,15 @@ export default function DashboardPage() {
             <p className="text-gray-600 font-body text-sm mb-4">Tạo và quản lý các khóa học VIP</p>
             <span className="text-black font-body text-sm font-medium">Xem chi tiết →</span>
           </Link>
+
+          <Link
+            href="/admin/tarot-decks/manage"
+            className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all hover:border-black"
+          >
+            <h3 className="text-xl font-heading font-bold text-black mb-2">Quản lý Bộ bài Tarot</h3>
+            <p className="text-gray-600 font-body text-sm mb-4">Tạo và quản lý các bộ bài Tarot và lá bài</p>
+            <span className="text-black font-body text-sm font-medium">Xem chi tiết →</span>
+          </Link>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
