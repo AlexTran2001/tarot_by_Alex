@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useVIP } from "@/hooks/useVIP";
 import { supabase } from "@/lib/supabaseClient";
 import Breadcrumb from "@/components/Breadcrumb";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import Image from "next/image";
 
 interface Lesson {
@@ -31,6 +32,7 @@ export default function LessonDetailPage() {
   const [lessonLoading, setLessonLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [completed, setCompleted] = useState(false);
+  const [completing, setCompleting] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -88,9 +90,12 @@ export default function LessonDetailPage() {
   }, [user, isVip, lessonId]);
 
   const handleMarkComplete = async () => {
-    if (!user || !lesson) return;
+    if (!user || !lesson || completing) return;
 
     try {
+      setCompleting(true);
+      setError(null);
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         setError("Phiên đăng nhập đã hết hạn");
@@ -122,37 +127,13 @@ export default function LessonDetailPage() {
     } catch (err: any) {
       console.error("Error updating progress:", err);
       setError(err.message || "Đã xảy ra lỗi khi cập nhật tiến độ");
+    } finally {
+      setCompleting(false);
     }
   };
 
   if (loading || lessonLoading) {
-    return (
-      <main className="min-h-screen flex items-center justify-center pt-24">
-        <div className="text-center">
-          <svg
-            className="animate-spin h-8 w-8 text-black mx-auto mb-4"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          <p className="text-gray-600 font-body">Đang tải bài học...</p>
-        </div>
-      </main>
-    );
+    return <LoadingSpinner fullScreen text="Đang tải bài học..." />;
   }
 
   if (!loading && user && !isVip) {
@@ -198,13 +179,42 @@ export default function LessonDetailPage() {
                 </div>
                 <button
                   onClick={handleMarkComplete}
-                  className={`px-4 py-2 rounded-md font-body transition-all ${
+                  disabled={completing}
+                  className={`px-4 py-2 rounded-md font-body transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${
                     completed
                       ? "bg-green-100 text-green-800 hover:bg-green-200"
                       : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                   }`}
                 >
-                  {completed ? "✓ Đã hoàn thành" : "Đánh dấu hoàn thành"}
+                  {completing && (
+                    <svg
+                      className="animate-spin h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                  )}
+                  {completing
+                    ? completed
+                      ? "Đang hủy..."
+                      : "Đang cập nhật..."
+                    : completed
+                    ? "✓ Đã hoàn thành"
+                    : "Đánh dấu hoàn thành"}
                 </button>
               </div>
             </header>

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useVIP } from "@/hooks/useVIP";
 import { supabase } from "@/lib/supabaseClient";
 import Breadcrumb from "@/components/Breadcrumb";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import Image from "next/image";
 
 interface Magazine {
@@ -25,6 +26,7 @@ export default function MagazinesPage() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [pageLoading, setPageLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -42,7 +44,12 @@ export default function MagazinesPage() {
 
     const fetchMagazines = async () => {
       try {
-        setMagazinesLoading(true);
+        // Only show full screen loading on initial load
+        if (page === 1) {
+          setMagazinesLoading(true);
+        } else {
+          setPageLoading(true);
+        }
         setError(null);
 
         const { data: { session } } = await supabase.auth.getSession();
@@ -70,6 +77,7 @@ export default function MagazinesPage() {
         setError(err.message || "Đã xảy ra lỗi khi tải tạp chí");
       } finally {
         setMagazinesLoading(false);
+        setPageLoading(false);
       }
     };
 
@@ -77,33 +85,7 @@ export default function MagazinesPage() {
   }, [user, isVip, page]);
 
   if (loading || magazinesLoading) {
-    return (
-      <main className="min-h-screen flex items-center justify-center pt-24">
-        <div className="text-center">
-          <svg
-            className="animate-spin h-8 w-8 text-black mx-auto mb-4"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          <p className="text-gray-600 font-body">Đang tải tạp chí...</p>
-        </div>
-      </main>
-    );
+    return <LoadingSpinner fullScreen text="Đang tải tạp chí..." />;
   }
 
   if (!loading && user && !isVip) {
@@ -181,12 +163,34 @@ export default function MagazinesPage() {
             </div>
 
             {totalPages > 1 && (
-              <div className="flex justify-center gap-2">
+              <div className="flex justify-center items-center gap-2">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed font-body hover:bg-gray-50"
+                  disabled={page === 1 || pageLoading}
+                  className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed font-body hover:bg-gray-50 transition-all flex items-center gap-2"
                 >
+                  {pageLoading && page > 1 && (
+                    <svg
+                      className="animate-spin h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                  )}
                   Trước
                 </button>
                 <span className="px-4 py-2 font-body">
@@ -194,9 +198,31 @@ export default function MagazinesPage() {
                 </span>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed font-body hover:bg-gray-50"
+                  disabled={page === totalPages || pageLoading}
+                  className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed font-body hover:bg-gray-50 transition-all flex items-center gap-2"
                 >
+                  {pageLoading && page < totalPages && (
+                    <svg
+                      className="animate-spin h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                  )}
                   Sau
                 </button>
               </div>

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import LoadingButton from "@/components/LoadingButton";
 
 type FormState = {
   name: string;
@@ -342,13 +343,16 @@ export default function Booking() {
 
           {/* Nút gửi */}
           <div className="sm:col-span-2 flex items-center gap-4">
-            <button
+            <LoadingButton
               type="submit"
+              loading={status === "loading"}
               disabled={status === "loading"}
-              className="rounded-full bg-indigo-600 px-8 py-3 text-white text-sm font-medium transition-all hover:scale-105 disabled:opacity-60"
+              loadingText="Đang gửi..."
+              variant="primary"
+              className="rounded-full px-8 py-3 text-sm hover:scale-105"
             >
-              {status === "loading" ? "Đang gửi..." : "Gửi yêu cầu"}
-            </button>
+              Gửi yêu cầu
+            </LoadingButton>
 
             <AnimatePresence>
               {status === "success" && (
