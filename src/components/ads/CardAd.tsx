@@ -31,9 +31,18 @@ export default function CardAd({ ad }: { ad: any }) {
                     </div>
                 )}
                 <div className="p-4">
-                    <h3 className="font-semibold mb-2">{ad.title}</h3>
-                    <p className="text-sm text-zinc-600 line-clamp-3">{ad.content}</p>
-                    <div className="mt-3 text-xs text-zinc-500">Hết hạn: {ad.expire_at ? new Date(ad.expire_at).toLocaleString() : "Không"}</div>
+                    <h3 className="font-semibold mb-2 font-heading text-lg">{ad.title}</h3>
+                    {ad.content && (
+                      <p className="text-sm text-zinc-600 line-clamp-3 font-body">
+                        {ad.content.replace(/<[^>]*>/g, '').substring(0, 150)}
+                        {ad.content.length > 150 && '...'}
+                      </p>
+                    )}
+                    {ad.expire_at && (
+                      <div className="mt-3 text-xs text-zinc-500 font-body">
+                        Hết hạn: {new Date(ad.expire_at).toLocaleDateString("vi-VN")}
+                      </div>
+                    )}
                 </div>
             </div>
         </Link>

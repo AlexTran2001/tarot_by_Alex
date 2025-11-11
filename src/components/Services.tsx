@@ -60,7 +60,7 @@ export default function Services() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-8" role="list">
           <ServiceCard
             delay={0.1}
             title="Đọc Tổng Quan"

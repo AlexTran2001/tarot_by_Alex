@@ -26,7 +26,7 @@ export default function About() {
           >
             <Image
               src="/logo.jpg"
-              alt="Alex Tarot Logo"
+              alt="Alex - Tarot Reader và Nhà tư vấn tâm linh chuyên nghiệp tại Tarot by Alex"
               fill
               className="object-cover scale-105 hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(.2,.8,.2,1)]"
               sizes="(max-width: 768px) 100vw, 50vw"

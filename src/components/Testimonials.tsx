@@ -66,14 +66,16 @@ export default function Testimonials() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
               >
-                <blockquote className="text-lg text-zinc-700 italic mb-6 relative">
+                <blockquote className="text-lg text-zinc-700 italic mb-6 relative" itemScope itemType="https://schema.org/Review">
                   <span className="text-4xl text-zinc-400 absolute -left-3 top-0">"</span>
-                  {currentTestimonial.quote}
+                  <span itemProp="reviewBody">{currentTestimonial.quote}</span>
                   <span className="text-4xl text-zinc-400 absolute -right-3 bottom-[-10px]">"</span>
+                  <meta itemProp="author" content={currentTestimonial.author} />
+                  <meta itemProp="itemReviewed" content={currentTestimonial.service} />
                 </blockquote>
 
                 <footer className="mt-6">
-                  <div className="font-semibold text-zinc-900">{currentTestimonial.author}</div>
+                  <cite className="font-semibold text-zinc-900 not-italic">{currentTestimonial.author}</cite>
                   <div className="text-sm text-zinc-500">{currentTestimonial.service}</div>
                 </footer>
               </motion.div>
