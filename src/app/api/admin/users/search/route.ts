@@ -41,18 +41,43 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Email query parameter is required" }, { status: 400 });
     }
 
-    const { data, error } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+    const normalizedEmail = email.trim().toLowerCase();
+    const perPage = 200;
+    let page = 1;
+    let foundUser: any = null;
 
-    if (error) {
-      console.error("Error searching user by email:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    while (!foundUser) {
+      const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+        page,
+        perPage,
+      });
+
+      if (error) {
+        console.error("Error searching user by email:", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      const users = data?.users ?? [];
+      foundUser =
+        users.find((user) => user.email?.toLowerCase() === normalizedEmail) ?? null;
+
+      if (foundUser || users.length < perPage) {
+        break;
+      }
+
+      page += 1;
+
+      if (page > 50) {
+        // safety break for very large user bases
+        break;
+      }
     }
 
-    if (!data?.user) {
+    if (!foundUser) {
       return NextResponse.json({ user: null });
     }
 
-    const user = data.user;
+    const user = foundUser;
     return NextResponse.json({
       user: {
         id: user.id,
