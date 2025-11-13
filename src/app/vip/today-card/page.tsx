@@ -151,7 +151,7 @@ export default function TodayCardPage() {
                     Thông Điệp Cho Bạn
                   </h3>
                   <p className="text-gray-700 font-body leading-relaxed">
-                    {card.card_meaning}
+                    {card.card_description}
                   </p>
                 </div>
 
@@ -160,7 +160,7 @@ export default function TodayCardPage() {
                     Ý Nghĩa
                   </h3>
                   <p className="text-gray-700 font-body leading-relaxed">
-                    {card.card_description}
+                    {card.card_meaning}
                   </p>
                 </div>
               </div>

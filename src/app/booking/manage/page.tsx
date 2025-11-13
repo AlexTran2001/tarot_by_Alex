@@ -12,11 +12,13 @@ import Link from "next/link";
 interface Booking {
     id: string;
     name: string;
-    email: string;
+    email: string | null;
+    note: string | null;
+    phone: string | null;
     date: string;
     time: string;
     type: string;
-    note: string;
+    customer_user_id: string | null;
     created_at: string;
 }
 
@@ -89,7 +91,8 @@ export default function BookingManagePage() {
             filtered = filtered.filter(
                 (booking) =>
                     booking.name.toLowerCase().includes(query) ||
-                    booking.email.toLowerCase().includes(query) ||
+                    booking.email?.toLowerCase().includes(query) ||
+                    booking.phone?.toLowerCase().includes(query) ||
                     booking.type.toLowerCase().includes(query) ||
                     booking.note?.toLowerCase().includes(query)
             );
@@ -199,11 +202,21 @@ export default function BookingManagePage() {
                     ]}
                 />
 
-                <div className="mb-8">
+                <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <h1 className="text-4xl font-heading font-bold text-black mb-2">
                         Quản lý Booking
                     </h1>
-                    <p className="text-gray-600 font-body">Xem và quản lý các đặt lịch Tarot</p>
+                    <div className="flex flex-col sm:items-end gap-3">
+                        <p className="text-gray-600 font-body">
+                            Xem và quản lý các đặt lịch Tarot
+                        </p>
+                        <Link
+                            href="/booking/new"
+                            className="inline-flex items-center justify-center rounded-lg bg-black px-4 py-2 font-body text-sm font-medium text-white transition hover:bg-gray-900"
+                        >
+                            + Tạo booking
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Search and Sort Controls */}
@@ -260,7 +273,7 @@ export default function BookingManagePage() {
                                             Tên
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-body">
-                                            Email
+                                            Liên hệ
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-body">
                                             Ngày & Giờ
@@ -270,6 +283,9 @@ export default function BookingManagePage() {
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-body">
                                             Ghi chú
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-body">
+                                            Tài khoản
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider font-body">
                                             Ngày đặt
@@ -286,7 +302,10 @@ export default function BookingManagePage() {
                                                 {booking.name}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-body">
-                                                {booking.email}
+                                                <div className="space-y-1">
+                                                    {booking.email ? <p>{booking.email}</p> : <p>-</p>}
+                                                    {booking.phone ? <p className="text-gray-500">{booking.phone}</p> : null}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-body">
                                                 {new Date(booking.date).toLocaleDateString("vi-VN")}{" "}
@@ -298,21 +317,38 @@ export default function BookingManagePage() {
                                             <td className="px-6 py-4 text-sm text-gray-600 font-body max-w-xs truncate">
                                                 {booking.note || "-"}
                                             </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-body">
+                                                {booking.customer_user_id ? (
+                                                    <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">
+                                                        Đã liên kết
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-gray-400">-</span>
+                                                )}
+                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-body">
                                                 {new Date(booking.created_at).toLocaleDateString(
                                                     "vi-VN"
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium font-body">
-                                                <button
-                                                    onClick={() => handleDelete(booking.id)}
-                                                    disabled={deleteLoading === booking.id}
-                                                    className="text-rose-600 hover:text-rose-900 disabled:opacity-50"
-                                                >
-                                                    {deleteLoading === booking.id
-                                                        ? "Đang xóa..."
-                                                        : "Xóa"}
-                                                </button>
+                                                <div className="flex items-center gap-3">
+                                                    <Link
+                                                        href={`/booking/${booking.id}/meeting`}
+                                                        className="text-black hover:text-gray-800 transition"
+                                                    >
+                                                        Meeting
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => handleDelete(booking.id)}
+                                                        disabled={deleteLoading === booking.id}
+                                                        className="text-rose-600 hover:text-rose-900 disabled:opacity-50"
+                                                    >
+                                                        {deleteLoading === booking.id
+                                                            ? "Đang xóa..."
+                                                            : "Xóa"}
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}

@@ -21,12 +21,21 @@ export async function POST(req: NextRequest) {
   try {
     const supabaseAdmin = getSupabaseAdmin();
     const body = await req.json();
-    const { name, email, datetime, type, note } = body;
+    const {
+      name,
+      email,
+      phone,
+      datetime,
+      type,
+      note,
+      description,
+      customerAccountId,
+    } = body;
 
     // Validate required fields
-    if (!name || !email || !datetime || !type) {
+    if (!name || !datetime || !type || (!email && !phone)) {
       return NextResponse.json(
-        { error: "Name, email, datetime, and type are required" },
+        { error: "Name, datetime, type, and at least one contact method are required" },
         { status: 400 }
       );
     }
@@ -42,10 +51,12 @@ export async function POST(req: NextRequest) {
       .insert({
         name,
         email,
+        phone: phone || null,
         date,
         time,
         type,
-        note: note || null,
+        note: description ?? note ?? null,
+        customer_user_id: customerAccountId || null,
       })
       .select()
       .single();
