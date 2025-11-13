@@ -30,7 +30,7 @@ async function getAuthorizedAdmin(req: NextRequest) {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { meetingId: string } }
+  context: { params: Promise<{ meetingId: string }> }
 ) {
   try {
     const authorized = await getAuthorizedAdmin(req);
@@ -39,7 +39,7 @@ export async function GET(
     }
     const { supabaseAdmin } = authorized;
 
-    const meetingId = params.meetingId;
+    const { meetingId } = await context.params;
 
     const { data, error } = await supabaseAdmin
       .from("meetings")
@@ -69,7 +69,7 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { meetingId: string } }
+  context: { params: Promise<{ meetingId: string }> }
 ) {
   try {
     const authorized = await getAuthorizedAdmin(req);
@@ -78,7 +78,7 @@ export async function PUT(
     }
     const { supabaseAdmin } = authorized;
 
-    const meetingId = params.meetingId;
+    const { meetingId } = await context.params;
     const body = await req.json();
     const {
       title,
@@ -130,7 +130,7 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { meetingId: string } }
+  context: { params: Promise<{ meetingId: string }> }
 ) {
   try {
     const authorized = await getAuthorizedAdmin(req);
@@ -139,7 +139,7 @@ export async function DELETE(
     }
     const { supabaseAdmin } = authorized;
 
-    const meetingId = params.meetingId;
+    const { meetingId } = await context.params;
 
     const { error } = await supabaseAdmin.from("meetings").delete().eq("id", meetingId);
 

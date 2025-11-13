@@ -30,7 +30,7 @@ async function getAuthorizedAdmin(req: NextRequest) {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { meetingId: string } }
+  context: { params: Promise<{ meetingId: string }> }
 ) {
   try {
     const authorized = await getAuthorizedAdmin(req);
@@ -39,7 +39,7 @@ export async function GET(
     }
     const { supabaseAdmin } = authorized;
 
-    const meetingId = params.meetingId;
+    const { meetingId } = await context.params;
 
     const { data, error } = await supabaseAdmin
       .from("spread_cards")
@@ -64,7 +64,7 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { meetingId: string } }
+  context: { params: Promise<{ meetingId: string }> }
 ) {
   try {
     const authorized = await getAuthorizedAdmin(req);
@@ -73,7 +73,7 @@ export async function POST(
     }
     const { supabaseAdmin } = authorized;
 
-    const meetingId = params.meetingId;
+    const { meetingId } = await context.params;
     const body = await req.json();
     const {
       question,

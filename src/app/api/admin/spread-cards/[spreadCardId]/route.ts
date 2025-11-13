@@ -30,7 +30,7 @@ async function getAuthorizedAdmin(req: NextRequest) {
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { spreadCardId: string } }
+  context: { params: Promise<{ spreadCardId: string }> }
 ) {
   try {
     const authorized = await getAuthorizedAdmin(req);
@@ -39,7 +39,7 @@ export async function PUT(
     }
     const { supabaseAdmin } = authorized;
 
-    const spreadCardId = params.spreadCardId;
+    const { spreadCardId } = await context.params;
     const body = await req.json();
     const {
       question,
@@ -91,7 +91,7 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { spreadCardId: string } }
+  context: { params: Promise<{ spreadCardId: string }> }
 ) {
   try {
     const authorized = await getAuthorizedAdmin(req);
@@ -100,7 +100,7 @@ export async function DELETE(
     }
     const { supabaseAdmin } = authorized;
 
-    const spreadCardId = params.spreadCardId;
+    const { spreadCardId } = await context.params;
 
     const { error } = await supabaseAdmin
       .from("spread_cards")
