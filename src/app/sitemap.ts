@@ -39,9 +39,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const { data: ads, error } = await supabase
       .from('ads')
-      .select('id, updated_at, expire_at')
+      .select('id, created_at, expire_at')
       .or(`expire_at.is.null,expire_at.gt.${new Date().toISOString()}`)
-      .order('updated_at', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching ads for sitemap:', error);
@@ -54,7 +54,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const adPages: MetadataRoute.Sitemap =
       ads?.map((ad) => ({
         url: `${siteUrl}/ads/${ad.id}`,
-        lastModified: ad.updated_at ? new Date(ad.updated_at) : new Date(),
+        lastModified: ad.created_at ? new Date(ad.created_at) : new Date(),
         changeFrequency: 'weekly' as const, // Ads may be updated occasionally
         priority: 0.7, // Medium priority - important but not as critical as main pages
       })) || [];

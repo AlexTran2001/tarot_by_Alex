@@ -147,7 +147,7 @@ export default function BookingMeetingPage() {
       try {
         setBookingLoading(true);
         const { data, error: fetchError } = await supabase
-          .from<Booking>("bookings")
+          .from("bookings")
           .select("*")
           .eq("id", bookingId)
           .single();
